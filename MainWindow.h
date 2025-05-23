@@ -1,7 +1,9 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
+#include <QSlider>
+
+#include "GameMatrix.h"
 
 class MainWindow : public QMainWindow
 {
@@ -10,5 +12,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+protected:
+    QSlider* m_scalSlider = nullptr;
+    GameMatrix* m_gameMatrix = nullptr;
 };
-#endif // MAINWINDOW_H

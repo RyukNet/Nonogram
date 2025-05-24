@@ -7,5 +7,5 @@ bool MatrixGenerator::GenerateNext(){
     static std::mt19937 rng(device());
     static std::uniform_int_distribution<std::mt19937::result_type> distr(0, 100);
 
-    return distr(rng) >= 37;
+    return distr(rng) >= 45;
 }

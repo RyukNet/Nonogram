@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include <QSlider>
 
+#include "GameEngine.h"
 #include "GameMatrix.h"
 
 class MainWindow : public QMainWindow
@@ -15,5 +16,7 @@ public:
 
 protected:
     QSlider* m_scalSlider = nullptr;
+    GameEngine* m_gameEngine = nullptr;
     GameMatrix* m_gameMatrix = nullptr;
+
 };

@@ -12,18 +12,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
+include_directories(Engine)
 include_directories(Generator)
 include_directories(GameObjs)
-include_directories(Widgets)
 
 set(PROJECT_SOURCES
         main.cpp
         MainWindow.cpp
         MainWindow.h
 
-
-        Widgets/MatrixCell.h
-        Widgets/MatrixCell.cpp
+        Engine/GameEngine.h
+        Engine/GameEngine.cpp
 
         GameObjs/GameMatrix.h
         GameObjs/GameMatrix.cpp

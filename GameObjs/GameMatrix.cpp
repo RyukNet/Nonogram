@@ -343,10 +343,6 @@ void GameMatrix::mouseMoveEvent(QMouseEvent* e){
         m_selectionBuffer.end_X = endCellX;
         m_selectionBuffer.end_Y = endCellY;
         m_selectionBuffer.m_valid = true;
-        /*m_selectionBuffer.m_matrix.resize(endCellY - startCellY);
-        for(int h = 0; h < endCellY - startCellY; h++){
-            m_selectionBuffer.m_matrix[h].resize(endCellX - startCellX, CellState (m_currentMode));
-        }*/
     }
     repaint();
     QWidget::mouseMoveEvent(e);

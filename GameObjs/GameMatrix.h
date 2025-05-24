@@ -54,7 +54,6 @@ protected:
         quint8 end_X;
         quint8 end_Y;
         bool m_valid = false;
-        //std::vector<std::vector<CellState>> m_matrix;
     } m_selectionBuffer;
 
 };

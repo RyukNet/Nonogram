@@ -33,18 +33,6 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
 
     //setFixedHeight(1000);
     //setFixedWidth(1000);
-
-    /*for(quint8 h = 0; h < height; h++){
-        for(quint8 w = 0; w < width; w++){
-            m_matrix[h][w] = MatrixGenerator::GenerateNext();
-        }
-    }*/
-    /*for(quint8 h = 0; h < height; h++){
-        for(quint8 w = 0; w < width; w++){
-            std::cout << ((m_matrix[h][w])? "X" : " ") << "|";
-        }
-        std::cout << std::endl;
-    }*/
 }
 
 void GameMatrix::setScale(int value){
@@ -147,7 +135,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     painter.setPen(pen);
     painter.setBrush(Qt::black);
     painter.drawRects(checkedRects.data(), checkedRects.size());
-    painter.setBrush(Qt::red);
+    painter.setBrush(QColor(117, 29, 31));
     painter.drawRects(crossedRects.data(), crossedRects.size());
 
     if(!m_mousePos.isNull() && rect().contains(m_mousePos)){
@@ -178,7 +166,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
             painter.setBrush(Qt::black);
             break;
         case CROSSING:
-            painter.setBrush(Qt::red);
+            painter.setBrush(QColor(117, 29, 31));
             break;
         }
         painter.drawRects(selectedRects.data(), selectedRects.size());
@@ -258,12 +246,10 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
     int startCellX = (int)((qreal)selectionRect.x() / (qreal)cellWidth);
     int startCellY = (int)((qreal)selectionRect.y() / (qreal)cellHeight);
 
-    //qDebug() << "start(" << startCellX << ", " << startCellY << ")";
 
     int endCellX = (int)((qreal)selectionRect.right() / (qreal)cellWidth);
     int endCellY = (int)((qreal)selectionRect.bottom() / (qreal)cellHeight);
 
-    //qDebug() << "end(" << endCellX << ", " << endCellY << ")";
 
     for(int h = startCellY; h <= endCellY; h++){
         for(int w = startCellX; w <= endCellX; w++){

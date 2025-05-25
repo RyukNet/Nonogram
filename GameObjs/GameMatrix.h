@@ -49,9 +49,15 @@ protected:
     //void dra
     quint8 m_columns;
     quint8 m_rows;
+
+    struct Task{
+        quint8 task;
+        bool crossed = false;
+    };
+
     std::vector<std::vector<CellState>> m_matrix;
-    std::vector<std::vector<quint8>> m_rowsTasks;
-    std::vector<std::vector<quint8>> m_colsTasks;
+    std::vector<std::vector<Task>> m_rowsTasks;
+    std::vector<std::vector<Task>> m_colsTasks;
 
     // Variables for drawing/painting
     quint8 m_rowMaxTasksCount = 0; // The row with most task numbers

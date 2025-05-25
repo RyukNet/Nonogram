@@ -52,7 +52,7 @@ quint8 GameEngine::rows() const{
     return m_rows;
 }
 
-std::vector<std::vector<quint8>> GameEngine::columnsTasks() const{
+std::vector<std::vector<quint8>> GameEngine::rowsTasks() const{
     std::vector<std::vector<quint8>> result(0);
     for(quint8 h = 0; h < m_rows; h++){
         quint8 value = 0;
@@ -79,7 +79,7 @@ std::vector<std::vector<quint8>> GameEngine::columnsTasks() const{
     return result;
 }
 
-std::vector<std::vector<quint8>> GameEngine::rowsTasks() const{
+std::vector<std::vector<quint8>> GameEngine::columnsTasks() const{
     std::vector<std::vector<quint8>> result(0);
     for(quint8 w = 0; w < m_columns; w++){
         quint8 value = 0;

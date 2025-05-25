@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     QFont font = a.font();
-    font.setFamily("Roboto");
+    font.setFamily("Segoe UI");
     a.setFont(font);
 
     w.show();

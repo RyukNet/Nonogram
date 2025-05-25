@@ -7,6 +7,7 @@
 #include <QPaintEvent>
 #include <QResizeEvent>
 #include <QPoint>
+#include <QRectF>
 
 #include "GameEngine.h"
 
@@ -28,7 +29,7 @@ public:
     int heightForWidth(int) const override;
 
 public slots:
-    void setScale(int);
+
 signals:
 
 protected:
@@ -49,17 +50,20 @@ protected:
     quint8 m_rowMaxTasksCount = 0; // The row with most task numbers
     quint8 m_colMaxTasksCount = 0; // The row with most task numbers
     qreal m_cellDimension = 0;
+    qreal m_fontSize;
     qreal m_verGridMargins = 0;
     qreal m_horGridMargins = 0;
+
+    QRectF m_matrixArea;
 
     QColor m_backGroundColor;
     QColor m_gridColor;
     QColor m_checkColor;
     QColor m_crossColor;
+    QColor m_highlightColor;
 
     qreal m_gridWidth = 1;
-    qreal m_scale;
-    QPoint m_mousePos;
+    QPointF m_mousePos;
 
     ActionMode m_currentMode;
     QPoint m_selectBegin;

@@ -20,12 +20,6 @@ MainWindow::MainWindow(QWidget *parent)
     //mainLay->setMargin(4);
     central->setLayout(mainLay);
 
-    m_scalSlider = new QSlider(Qt::Horizontal);
-    mainLay->addWidget(m_scalSlider);
-    m_scalSlider->setMaximum(1000);
-    m_scalSlider->setMinimum(0);
-    m_scalSlider->setValue(100);
-
     QHBoxLayout* matrixViewLay = new QHBoxLayout();
     mainLay->addLayout(matrixViewLay);
 
@@ -54,10 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
     mainLay->setRowStretch(1, 1);
     mainLay->setRowStretch(2, 1);*/
 
-    setMinimumSize(200, 200);
-
-    connect(m_scalSlider, &QSlider::valueChanged, m_gameMatrix, &GameMatrix::setScale);
-
+    setMinimumSize(800, 800);
 }
 
 MainWindow::~MainWindow() {}

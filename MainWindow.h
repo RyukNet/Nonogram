@@ -15,7 +15,6 @@ public:
     ~MainWindow();
 
 protected:
-    QSlider* m_scalSlider = nullptr;
     GameEngine* m_gameEngine = nullptr;
     GameMatrix* m_gameMatrix = nullptr;
 

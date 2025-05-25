@@ -7,6 +7,8 @@
 #include <QLine>
 #include <QRect>
 #include <QPen>
+#include <QFont>
+#include <QFontMetricsF>
 #include <QSizePolicy>
 
 #include "MatrixGenerator.h"
@@ -20,12 +22,13 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     ,m_columns(engine->columns())
     ,m_rows(engine->rows())
     ,m_matrix(engine->rows(), std::vector<CellState>(engine->columns(), CellState::NEUTRAL))
-    ,m_scale(1)
     ,m_mousePos(0, 0)
     ,m_backGroundColor(255, 0, 0, 0)
     ,m_gridColor(255, 255, 255)
     ,m_checkColor(Qt::black)
     ,m_crossColor(Qt::red)
+    ,m_matrixArea(0, 0, 0, 0)
+    ,m_highlightColor(98, 171, 245)
 {
     setMouseTracking(true);
     QSizePolicy sizePolicy = this->sizePolicy();
@@ -36,7 +39,7 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     sizePolicy.setHorizontalPolicy(QSizePolicy::Minimum);
     sizePolicy.setVerticalPolicy(QSizePolicy::Minimum);
     setSizePolicy(sizePolicy);
-
+    
     //setFixedHeight(1000);
     //setFixedWidth(1000);
     m_rowsTasks = engine->columnsTasks();
@@ -55,102 +58,125 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     std::cout << "max col tasks : " << (int) m_colMaxTasksCount << std::endl;
 }
 
-void GameMatrix::setScale(int value){
-    m_scale = ((double) value) / 100;
-    repaint();
-}
-
 int GameMatrix::heightForWidth(int w) const{
     return (qreal)w / ((qreal)m_columns / (qreal)m_rows);
 }
 
 void GameMatrix::resizeEvent(QResizeEvent* event){
     QRectF widgetRect = rect();
-    qreal ratio = 1;
-
+    
     qreal horMinCell = widgetRect.width() / Q_REAL(m_columns + m_rowMaxTasksCount * 2);
     qreal verMinCell = widgetRect.height() / Q_REAL(m_rows + m_colMaxTasksCount);
-
+    
     m_cellDimension = std::min(horMinCell, verMinCell);
-
+    
     m_horGridMargins = (widgetRect.width() - (m_cellDimension * (m_columns + m_rowMaxTasksCount * 2))) / 2;
     m_verGridMargins = (widgetRect.height() - (m_cellDimension * (m_rows + m_colMaxTasksCount))) / 2;
+    
+    m_matrixArea = widgetRect;
+    m_matrixArea.setWidth(widgetRect.width() - (m_horGridMargins + (m_cellDimension * m_rowMaxTasksCount)));
+    m_matrixArea.setHeight(widgetRect.height() - m_verGridMargins);
+    m_matrixArea.setX(widgetRect.x() + m_horGridMargins + (m_cellDimension * m_rowMaxTasksCount));
+    m_matrixArea.setY(widgetRect.y() + m_verGridMargins + (m_cellDimension * m_colMaxTasksCount));
+
+    m_fontSize = m_cellDimension * 0.64;
 
     QWidget::resizeEvent(event);
 }
 
 void GameMatrix::paintEvent(QPaintEvent* event){
     QRect widgetRect = rect();
-
+    
     QPainter painter(this);
-    painter.scale(m_scale, m_scale);
     painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::TextAntialiasing);
 
+    QFont font = painter.font();
+    font.setWeight(QFont::DemiBold);
+    font.setPixelSize(m_fontSize);
+    painter.setFont(font);
+    
     // Background
     painter.fillRect(rect(), m_backGroundColor);
-
+    
+    // Grid
     painter.setBrush(m_gridColor);
     for(quint8 col = 0;
          col <= m_rowMaxTasksCount * 2 + m_columns;
          col++){
-
+        
         qreal coordX = ((qreal) col) * m_cellDimension + m_horGridMargins;
         qreal startY = m_verGridMargins;
         qreal endY = widgetRect.height() - m_verGridMargins;
-
+        
         if(col == 0 || col == m_rowMaxTasksCount * 2 + m_columns){
-            //startY += m_verGridMargins + (m_cellDimension * m_colMaxTasksCount);
             startY += (m_cellDimension * m_colMaxTasksCount);
-            //endY -= m_verGridMargins;
         }else if((col > 0 && col < m_rowMaxTasksCount) ||
                    (col > m_columns + m_rowMaxTasksCount && col < m_rowMaxTasksCount * 2 + m_columns)){
             continue;
         }
-
+        
         QPointF startPoint;
         startPoint.setX(coordX);
         startPoint.setY(startY);
-
+        
         QPointF endPoint;
         endPoint.setX(coordX);
         endPoint.setY(endY);
-
+        
         QLineF line(startPoint, endPoint);
         painter.drawLine(line);
     }
     for(quint8 row = 0;
          row <= m_colMaxTasksCount + m_rows;
          row++){
-
+        
         qreal startX = m_horGridMargins;
         qreal endX = widgetRect.width() - m_horGridMargins;
         qreal coordY = ((qreal) row) * m_cellDimension + m_verGridMargins;
-
+        
         if(row == 0){
             startX += (m_cellDimension * m_rowMaxTasksCount);
             endX -= (m_cellDimension * m_rowMaxTasksCount);
         }else if(row > 0 && row < m_colMaxTasksCount){
             continue;
         }
-
+        
         QPointF startPoint;
         startPoint.setX(startX);
         startPoint.setY(coordY);
-
+        
         QPointF endPoint;
         endPoint.setX(endX);
         endPoint.setY(coordY);
-
+        
         QLineF line(startPoint, endPoint);
         painter.drawLine(line);
     }
 
+
+    
+    painter.fillRect(m_matrixArea, Qt::red);
+    if(!m_mousePos.isNull()){
+        
+        QPointF mousePos = m_mousePos - m_matrixArea.topLeft();
+        int cellX = (int)(mousePos.rx() / m_cellDimension);
+        int cellY = (int)(mousePos.ry() / m_cellDimension);
+        
+        qreal highlightX = m_horGridMargins + (m_rowMaxTasksCount + Q_REAL(cellX)) * m_cellDimension;
+        qreal highlightY = m_verGridMargins + (m_colMaxTasksCount + Q_REAL(cellY)) * m_cellDimension;
+        QRect hightlightedCell(highlightX, highlightY, m_cellDimension, m_cellDimension);
+        
+        painter.setBrush(m_highlightColor);
+        painter.drawRect(hightlightedCell);
+
+        //painter.fillRect(hightlightedCell, m_highlightColor);
+    }
 }
 
 /*void GameMatrix::paintEvent(QPaintEvent* event){
 
     QPainter painter(this);
-    painter.scale(m_scale, m_scale);
     QColor backgroundColor(40, 134, 222);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.fillRect(rect(), backgroundColor);
@@ -283,8 +309,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 }*/
 
 void GameMatrix::mousePressEvent(QMouseEvent *e){
-    m_selectBegin = e->pos();
-    // TODO: add scale calculations ( [var]  / m_scale);
+    /*m_selectBegin = e->pos();
     qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
     qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
     int cellX = (int)((qreal)m_selectBegin.x() / (qreal)cellWidth);
@@ -305,14 +330,13 @@ void GameMatrix::mousePressEvent(QMouseEvent *e){
         }else{
             m_currentMode = ActionMode::CROSSING;
         }
-    }
-
+    }*/
+    
     QWidget::mousePressEvent(e);
 }
 
 void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
-    QPointF startSelect;
-    // TODO: add scale calculations ( [var]  / m_scale);
+    /*QPointF startSelect;
     startSelect.setX(std::min(e->pos().x(), m_selectBegin.x()));
     startSelect.setY(std::min(e->pos().y(), m_selectBegin.y()));
 
@@ -373,7 +397,8 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
         }
     }
 
-    m_selectBegin = QPoint();
+    m_selectBegin = QPoint();*/
+    
     repaint();
     QWidget::mouseReleaseEvent(e);
 }
@@ -385,56 +410,59 @@ void GameMatrix::leaveEvent(QEvent* e){
 }
 
 void GameMatrix::mouseMoveEvent(QMouseEvent* e){
-    m_mousePos = e->pos() / m_scale;
-    if(e->buttons() & (Qt::LeftButton | Qt::RightButton)){
-        // TODO: add scale calculations ( [var]  / m_scale);
-        QPointF startSelect;
-        startSelect.setX(std::min(e->pos().x(), m_selectBegin.x()));
-        startSelect.setY(std::min(e->pos().y(), m_selectBegin.y()));
-
-        QPointF endSelect;
-        endSelect.setX(std::max(e->pos().x(), m_selectBegin.x()));
-        endSelect.setY(std::max(e->pos().y(), m_selectBegin.y()));
-
-        if(endSelect.x() > rect().width()){
-            endSelect.setX(rect().width() - 3);
-        }else if(endSelect.x() < 0){
-            endSelect.setX(0);
+    if(m_matrixArea.contains(e->pos())){
+        m_mousePos = e->pos();
+        if(e->buttons() & (Qt::LeftButton | Qt::RightButton)){
+            QPointF startSelect;
+            startSelect.setX(std::min(e->pos().x(), m_selectBegin.x()));
+            startSelect.setY(std::min(e->pos().y(), m_selectBegin.y()));
+            
+            QPointF endSelect;
+            endSelect.setX(std::max(e->pos().x(), m_selectBegin.x()));
+            endSelect.setY(std::max(e->pos().y(), m_selectBegin.y()));
+            
+            if(endSelect.x() > rect().width()){
+                endSelect.setX(rect().width() - 3);
+            }else if(endSelect.x() < 0){
+                endSelect.setX(0);
+            }
+            
+            if(endSelect.y() > rect().height()){
+                endSelect.setY(rect().height() - 3);
+            }else if(endSelect.y() < 0){
+                endSelect.setY(0);
+            }
+            
+            if(startSelect.x() > rect().width()){
+                startSelect.setX(rect().width() - 3);
+            }else if(startSelect.x() < 0){
+                startSelect.setX(0);
+            }
+            
+            if(startSelect.y() > rect().height()){
+                startSelect.setY(rect().height() - 3);
+            }else if(startSelect.y() < 0){
+                startSelect.setY(0);
+            }
+            
+            qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
+            qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
+            
+            QRectF selectionRect(startSelect, endSelect);
+            int startCellX = (int)((qreal)selectionRect.x() / (qreal)cellWidth);
+            int startCellY = (int)((qreal)selectionRect.y() / (qreal)cellHeight);
+            
+            int endCellX = (int)((qreal)selectionRect.right() / (qreal)cellWidth);
+            int endCellY = (int)((qreal)selectionRect.bottom() / (qreal)cellHeight);
+            
+            m_selectionBuffer.start_X = startCellX;
+            m_selectionBuffer.start_Y = startCellY;
+            m_selectionBuffer.end_X = endCellX;
+            m_selectionBuffer.end_Y = endCellY;
+            m_selectionBuffer.m_valid = true;
         }
-
-        if(endSelect.y() > rect().height()){
-            endSelect.setY(rect().height() - 3);
-        }else if(endSelect.y() < 0){
-            endSelect.setY(0);
-        }
-
-        if(startSelect.x() > rect().width()){
-            startSelect.setX(rect().width() - 3);
-        }else if(startSelect.x() < 0){
-            startSelect.setX(0);
-        }
-
-        if(startSelect.y() > rect().height()){
-            startSelect.setY(rect().height() - 3);
-        }else if(startSelect.y() < 0){
-            startSelect.setY(0);
-        }
-
-        qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
-        qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
-
-        QRectF selectionRect(startSelect, endSelect);
-        int startCellX = (int)((qreal)selectionRect.x() / (qreal)cellWidth);
-        int startCellY = (int)((qreal)selectionRect.y() / (qreal)cellHeight);
-
-        int endCellX = (int)((qreal)selectionRect.right() / (qreal)cellWidth);
-        int endCellY = (int)((qreal)selectionRect.bottom() / (qreal)cellHeight);
-
-        m_selectionBuffer.start_X = startCellX;
-        m_selectionBuffer.start_Y = startCellY;
-        m_selectionBuffer.end_X = endCellX;
-        m_selectionBuffer.end_Y = endCellY;
-        m_selectionBuffer.m_valid = true;
+    }else{
+        m_mousePos = QPoint();
     }
     repaint();
     QWidget::mouseMoveEvent(e);

@@ -33,6 +33,13 @@ public slots:
 signals:
 
 protected:
+    enum Area{
+        NONE = -1,
+        MATRIX,
+        TOP_TASKS,
+        LEFT_TASKS,
+        RIGHT_TASKS,
+    };
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
@@ -55,6 +62,9 @@ protected:
     qreal m_horGridMargins = 0;
 
     QRectF m_matrixArea;
+    QRectF m_colTasksArea;
+    QRectF m_leftRowTasksArea;
+    QRectF m_rightRowTasksArea;
 
     QColor m_backGroundColor;
     QColor m_gridColor;
@@ -63,7 +73,10 @@ protected:
     QColor m_highlightColor;
 
     qreal m_gridWidth = 1;
-    QPointF m_mousePos;
+    struct MousePos{
+        QPointF pos;
+        Area area = NONE;
+    } m_mousePos;
 
     ActionMode m_currentMode;
     QPoint m_selectBegin;

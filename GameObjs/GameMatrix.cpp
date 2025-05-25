@@ -22,7 +22,7 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     ,m_columns(engine->columns())
     ,m_rows(engine->rows())
     ,m_matrix(engine->rows(), std::vector<CellState>(engine->columns(), CellState::NEUTRAL))
-    ,m_mousePos(0, 0)
+    //,m_mousePos((0, 0), NONE)
     ,m_backGroundColor(255, 0, 0, 0)
     ,m_gridColor(0, 0, 0)
     ,m_checkColor(Qt::black)
@@ -79,6 +79,25 @@ void GameMatrix::resizeEvent(QResizeEvent* event){
     m_matrixArea.setX(widgetRect.x() + m_horGridMargins + (m_cellDimension * m_rowMaxTasksCount));
     m_matrixArea.setY(widgetRect.y() + m_verGridMargins + (m_cellDimension * m_colMaxTasksCount));
 
+    m_colTasksArea = widgetRect;
+    m_colTasksArea.setX(m_matrixArea.x());
+    m_colTasksArea.setY(widgetRect.y() + m_verGridMargins);
+    m_colTasksArea.setWidth(m_matrixArea.width());
+    m_colTasksArea.setHeight(m_colMaxTasksCount * m_cellDimension);
+
+    m_leftRowTasksArea = widgetRect;
+    m_leftRowTasksArea.setX(widgetRect.x() + m_horGridMargins);
+    m_leftRowTasksArea.setY(m_matrixArea.y());
+    m_leftRowTasksArea.setWidth(m_rowMaxTasksCount * m_cellDimension);
+    m_leftRowTasksArea.setHeight(m_matrixArea.height());
+
+    m_rightRowTasksArea = widgetRect;
+    m_rightRowTasksArea.setX(m_matrixArea.x() + (m_columns * m_cellDimension));
+    m_rightRowTasksArea.setWidth(m_rowMaxTasksCount * m_cellDimension);
+    m_rightRowTasksArea.setY(m_matrixArea.y());
+    m_rightRowTasksArea.setHeight(m_matrixArea.height());
+
+
     m_fontSize = m_cellDimension * 0.64;
 
     QWidget::resizeEvent(event);
@@ -97,10 +116,10 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     font.setPixelSize(m_fontSize);
     painter.setFont(font);
     
-    // Background
+    /// Background
     painter.fillRect(rect(), m_backGroundColor);
     
-    // Grid
+    /// Grid
     QPen gridPen;
     gridPen.setColor(m_gridColor);
     gridPen.setWidth(1);
@@ -139,8 +158,6 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         QLineF line(startPoint, endPoint);
         painter.drawLine(line);
     }
-    //gridPen.setWidth(1);
-    //painter.setPen(gridPen);
     for(quint8 row = 0;
          row <= m_colMaxTasksCount + m_rows;
          row++){
@@ -175,9 +192,10 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     }
 
     QFontMetricsF fontMetric(painter.font());
-    // Wrtie Tasks
+
+    /// Write Tasks
     {
-        // columns tasks
+        /// Columns tasks
         qreal colX = m_horGridMargins + (m_cellDimension * m_rowMaxTasksCount);
         for(quint8 col = 0; col < m_colsTasks.size(); col++){
             int diff = m_colMaxTasksCount - m_colsTasks[col].size();
@@ -185,9 +203,8 @@ void GameMatrix::paintEvent(QPaintEvent* event){
             for(quint8 cell = 0; cell < m_colsTasks[col].size(); cell++){
                 QString numText = QString::number(m_colsTasks[col][cell]);
                 qreal textWidth = fontMetric.horizontalAdvance(numText);
-
-
                 qreal tmpColX = colX + (m_cellDimension - textWidth) / 2;
+
                 painter.drawText(QPointF(tmpColX, colY), numText);
                 colY += m_cellDimension;
             }
@@ -195,7 +212,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         }
     }
     {
-        // row tasks
+        /// Rows tasks
         qreal colY = m_verGridMargins + (m_cellDimension * (m_colMaxTasksCount + 1)) - painter.font().pixelSize() / 2;
         for(quint8 row = 0; row < m_rowsTasks.size(); row++){
             int diff = m_rowMaxTasksCount - m_rowsTasks[row].size();
@@ -209,9 +226,9 @@ void GameMatrix::paintEvent(QPaintEvent* event){
                 col1X += m_cellDimension;
 
                 QString numText2 = QString::number(m_rowsTasks[row][cell]);
-                //QString numText2 = QString::number(m_rowsTasks[row][cell]);
                 qreal textWidth2  = fontMetric.horizontalAdvance(numText2);
                 qreal tmpCol2X = col2X +(m_cellDimension - textWidth2) / 2;
+
                 painter.drawText(QPointF(tmpCol2X, colY), numText2);
                 col2X += m_cellDimension;
             }
@@ -219,158 +236,48 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         }
     }
 
-    
-    //painter.fillRect(m_matrixArea, Qt::red);
-    if(!m_mousePos.isNull()){
+    /// For Debug
+    //painter.fillRect(m_colTasksArea, Qt::red);
+    //painter.fillRect(m_leftRowTasksArea, Qt::red);
+    //painter.fillRect(m_rightRowTasksArea, Qt::red);
+
+    /// Paint highlight
+    if(!m_mousePos.pos.isNull()){
+        QPen highlightPen(QColor(255, 255, 0));
+        QRectF currentRect;
+        switch(m_mousePos.area){
+        case MATRIX:
+            highlightPen = m_highlightColor;
+            currentRect.setRect(m_matrixArea.x(), m_matrixArea.y(), m_matrixArea.width(), m_matrixArea.height());
+            break;
+        case TOP_TASKS:
+            highlightPen.setColor(QColor(255, 0, 0));
+            currentRect.setRect(m_colTasksArea.x(), m_colTasksArea.y(), m_colTasksArea.width(), m_colTasksArea.height());
+            break;
+        case LEFT_TASKS:
+            highlightPen.setColor(QColor(0, 255, 0));
+            currentRect.setRect(m_leftRowTasksArea.x(), m_leftRowTasksArea.y(), m_leftRowTasksArea.width(), m_leftRowTasksArea.height());
+            break;
+        case RIGHT_TASKS :
+            highlightPen.setColor(QColor(0, 0, 255));
+            currentRect.setRect(m_rightRowTasksArea.x(), m_rightRowTasksArea.y(), m_rightRowTasksArea.width(), m_rightRowTasksArea.height());
+            break;
+        default:
+            break;
+        }
         
-        QPointF mousePos = m_mousePos - m_matrixArea.topLeft();
+        QPointF mousePos = m_mousePos.pos - currentRect.topLeft();
         int cellX = (int)(mousePos.rx() / m_cellDimension);
         int cellY = (int)(mousePos.ry() / m_cellDimension);
         
-        qreal highlightX = m_horGridMargins + (m_rowMaxTasksCount + Q_REAL(cellX)) * m_cellDimension;
-        qreal highlightY = m_verGridMargins + (m_colMaxTasksCount + Q_REAL(cellY)) * m_cellDimension;
+        qreal highlightX = currentRect.x() + (Q_REAL(cellX)) * m_cellDimension;
+        qreal highlightY = currentRect.y() + (Q_REAL(cellY)) * m_cellDimension;
         QRect hightlightedCell(highlightX, highlightY, m_cellDimension + 2, m_cellDimension + 2);
         
-        painter.setBrush(m_highlightColor);
+        painter.setPen(highlightPen);
         painter.drawRect(hightlightedCell);
-
-        //painter.fillRect(hightlightedCell, m_highlightColor);
     }
 }
-
-/*void GameMatrix::paintEvent(QPaintEvent* event){
-
-    QPainter painter(this);
-    QColor backgroundColor(40, 134, 222);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.fillRect(rect(), backgroundColor);
-
-    qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
-    qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
-
-    QPen pen(QColor(12, 59, 94), m_gridWidth);
-    painter.setPen(pen);
-    for(qreal w = 0; w < m_columns; w++){
-        if(((int)w) % 5 == 0){
-            pen.setWidth(m_gridWidth + 3);
-            painter.setPen(pen);
-        }else{
-            pen.setWidth(m_gridWidth);
-            painter.setPen(pen);
-        }
-        QLineF line;
-
-        QPointF start;
-        start.setX(w * ((qreal)this->rect().width() / (qreal)m_columns));
-        start.setY(0);
-
-        QPointF end;
-        end.setX(w * ((qreal)this->rect().width() / (qreal)m_columns));
-        end.setY(rect().height());
-
-        line.setP1(start);
-        line.setP2(end);
-
-        painter.drawLine(line);
-
-    }
-    for(qreal h = 0; h < m_rows; h++){
-        if(((int)h) % 5 == 0){
-            pen.setWidth(m_gridWidth + 2);
-            painter.setPen(pen);
-        }else{
-            pen.setWidth(m_gridWidth);
-            painter.setPen(pen);
-        }
-        QLineF line;
-
-        QPointF start;
-        start.setX(0);
-        start.setY(h * ((qreal)this->rect().height() / (qreal)m_rows));
-
-        QPointF end;
-        end.setX(rect().width());
-        end.setY(h * ((qreal)this->rect().height() / (qreal)m_rows));
-
-        line.setP1(start);
-        line.setP2(end);
-
-        painter.drawLine(line);
-    }
-    pen.setWidth(m_gridWidth + 3);
-    painter.setPen(pen);
-    painter.drawRect(rect());
-
-    pen.setWidth(m_gridWidth);
-    painter.setPen(pen);
-
-    qreal cellMargins = 2;
-
-    std::vector<QRectF> checkedRects;
-    std::vector<QRectF> crossedRects;
-    for(quint8 h = 0; h < m_rows; h++){
-        for(quint8 w = 0; w < m_columns; w++){
-            if(m_matrix[h][w] != CellState::NEUTRAL){
-                QRectF cell;
-                cell.setX(w * cellWidth + cellMargins);
-                cell.setY(h * cellHeight + cellMargins);
-                cell.setWidth(cellWidth - (cellMargins * 2));
-                cell.setHeight(cellHeight - (cellMargins * 2));
-                if(m_matrix[h][w] == CellState::CHECKED){
-                    checkedRects.push_back(cell);
-                }else if(m_matrix[h][w] == CellState::CROSSED){
-                    crossedRects.push_back(cell);
-                }
-            }
-        }
-    }
-    pen.setWidth(0);
-    painter.setPen(pen);
-    painter.setBrush(Qt::black);
-    painter.drawRects(checkedRects.data(), checkedRects.size());
-    painter.setBrush(QColor(117, 29, 31));
-    painter.drawRects(crossedRects.data(), crossedRects.size());
-
-    if(!m_mousePos.isNull() && rect().contains(m_mousePos)){
-        qreal cellX = (int)((qreal)m_mousePos.rx() / (qreal)cellWidth) * cellWidth;
-        qreal cellY = (int)((qreal)m_mousePos.ry() / (qreal)cellHeight) * cellHeight;
-        QRect hightlightedCell(cellX + 2, cellY + 2, cellWidth - 2, cellHeight - 2);
-        painter.setBrush(QColor(98, 171, 245));
-        painter.drawRect(hightlightedCell);
-    }
-
-    if(m_selectionBuffer.m_valid){
-        std::vector<QRectF> selectedRects(0);
-        for(quint8 h = m_selectionBuffer.start_Y; h <= m_selectionBuffer.end_Y; h++){
-            for(quint8 w = m_selectionBuffer.start_X; w <= m_selectionBuffer.end_X; w++){
-                QRectF cell;
-                cell.setX(w * cellWidth + cellMargins);
-                cell.setY(h * cellHeight + cellMargins);
-                cell.setWidth(cellWidth - (cellMargins * 2));
-                cell.setHeight(cellHeight - (cellMargins * 2));
-                selectedRects.push_back(cell);
-            }
-        }
-        switch(m_currentMode){
-        case VOIDING:
-            painter.setBrush(QColor(40, 134, 222));
-            break;
-        case CHECKING:
-            painter.setBrush(Qt::black);
-            break;
-        case CROSSING:
-            painter.setBrush(QColor(117, 29, 31));
-            break;
-        }
-        painter.drawRects(selectedRects.data(), selectedRects.size());
-        m_selectionBuffer.start_X = 0;
-        m_selectionBuffer.start_Y = 0;
-        m_selectionBuffer.end_X = 0;
-        m_selectionBuffer.end_X = 0;
-        m_selectionBuffer.m_valid = false;
-    }
-
-}*/
 
 void GameMatrix::mousePressEvent(QMouseEvent *e){
     /*m_selectBegin = e->pos();
@@ -468,14 +375,25 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
 }
 
 void GameMatrix::leaveEvent(QEvent* e){
-    m_mousePos = QPoint();
+    m_mousePos.pos = QPoint();
+    m_mousePos.area = Area::NONE;
     repaint();
     QWidget::leaveEvent(e);
 }
 
 void GameMatrix::mouseMoveEvent(QMouseEvent* e){
-    if(m_matrixArea.contains(e->pos())){
-        m_mousePos = e->pos();
+    if(m_matrixArea.contains(e->pos()) || m_colTasksArea.contains(e->pos()) ||
+        m_leftRowTasksArea.contains(e->pos()) || m_rightRowTasksArea.contains(e->pos())){
+        m_mousePos.pos = e->pos();
+        if(m_matrixArea.contains(m_mousePos.pos)){
+            m_mousePos.area = Area::MATRIX;
+        }else if(m_colTasksArea.contains(m_mousePos.pos)){
+            m_mousePos.area = Area::TOP_TASKS;
+        }else if(m_leftRowTasksArea.contains(m_mousePos.pos)){
+            m_mousePos.area = Area::LEFT_TASKS;
+        }else if(m_rightRowTasksArea.contains(m_mousePos.pos)){
+            m_mousePos.area = Area::RIGHT_TASKS;
+        }
         if(e->buttons() & (Qt::LeftButton | Qt::RightButton)){
             QPointF startSelect;
             startSelect.setX(std::min(e->pos().x(), m_selectBegin.x()));
@@ -526,7 +444,8 @@ void GameMatrix::mouseMoveEvent(QMouseEvent* e){
             m_selectionBuffer.m_valid = true;
         }
     }else{
-        m_mousePos = QPoint();
+        m_mousePos.pos = QPoint();
+        m_mousePos.area = Area::NONE;
     }
     repaint();
     QWidget::mouseMoveEvent(e);

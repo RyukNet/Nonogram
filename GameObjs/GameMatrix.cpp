@@ -1,6 +1,7 @@
 #include "GameMatrix.h"
 
 #include <iostream>
+#include <algorithm>
 
 #include <QPainter>
 #include <QLine>
@@ -12,27 +13,46 @@
 
 #include <QDebug>
 
+#define Q_REAL(x) ((qreal) x)
+
 GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     : QWidget{parent}
-    ,m_width(engine->width())
-    ,m_height(engine->height())
-    ,m_matrix(engine->height(), std::vector<CellState>(engine->width(), CellState::NEUTRAL))
+    ,m_columns(engine->columns())
+    ,m_rows(engine->rows())
+    ,m_matrix(engine->rows(), std::vector<CellState>(engine->columns(), CellState::NEUTRAL))
     ,m_scale(1)
     ,m_mousePos(0, 0)
+    ,m_backGroundColor(255, 0, 0, 0)
+    ,m_gridColor(255, 255, 255)
+    ,m_checkColor(Qt::black)
+    ,m_crossColor(Qt::red)
 {
-    //m_gridLay = new QGridLayout(this);
-    //this->setLayout(m_gridLay);
-
     setMouseTracking(true);
     QSizePolicy sizePolicy = this->sizePolicy();
     //sizePolicy.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
     //sizePolicy.setVerticalPolicy(QSizePolicy::MinimumExpanding);
     sizePolicy.setWidthForHeight(true);
     sizePolicy.setHeightForWidth(true);
+    sizePolicy.setHorizontalPolicy(QSizePolicy::Minimum);
+    sizePolicy.setVerticalPolicy(QSizePolicy::Minimum);
     setSizePolicy(sizePolicy);
 
     //setFixedHeight(1000);
     //setFixedWidth(1000);
+    m_rowsTasks = engine->columnsTasks();
+    std::for_each(m_rowsTasks.begin(), m_rowsTasks.end(), [&](const std::vector<quint8> row){
+        if(row.size() > m_rowMaxTasksCount){
+            m_rowMaxTasksCount = (quint8) row.size();
+        }
+    });
+    m_colsTasks = engine->rowsTasks();
+    std::for_each(m_colsTasks.begin(), m_colsTasks.end(), [&](const std::vector<quint8> col){
+        if(col.size() > m_colMaxTasksCount){
+            m_colMaxTasksCount = (quint8) col.size();
+        }
+    });
+    std::cout << "max row tasks : " << (int) m_rowMaxTasksCount << std::endl;
+    std::cout << "max col tasks : " << (int) m_colMaxTasksCount << std::endl;
 }
 
 void GameMatrix::setScale(int value){
@@ -40,11 +60,94 @@ void GameMatrix::setScale(int value){
     repaint();
 }
 
-int GameMatrix::heightForWidth(int h) const{
-    return h;
+int GameMatrix::heightForWidth(int w) const{
+    return (qreal)w / ((qreal)m_columns / (qreal)m_rows);
+}
+
+void GameMatrix::resizeEvent(QResizeEvent* event){
+    QRectF widgetRect = rect();
+    qreal ratio = 1;
+
+    qreal horMinCell = widgetRect.width() / Q_REAL(m_columns + m_rowMaxTasksCount * 2);
+    qreal verMinCell = widgetRect.height() / Q_REAL(m_rows + m_colMaxTasksCount);
+
+    m_cellDimension = std::min(horMinCell, verMinCell);
+
+    m_horGridMargins = (widgetRect.width() - (m_cellDimension * (m_columns + m_rowMaxTasksCount * 2))) / 2;
+    m_verGridMargins = (widgetRect.height() - (m_cellDimension * (m_rows + m_colMaxTasksCount))) / 2;
+
+    QWidget::resizeEvent(event);
 }
 
 void GameMatrix::paintEvent(QPaintEvent* event){
+    QRect widgetRect = rect();
+
+    QPainter painter(this);
+    painter.scale(m_scale, m_scale);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // Background
+    painter.fillRect(rect(), m_backGroundColor);
+
+    painter.setBrush(m_gridColor);
+    for(quint8 col = 0;
+         col <= m_rowMaxTasksCount * 2 + m_columns;
+         col++){
+
+        qreal coordX = ((qreal) col) * m_cellDimension + m_horGridMargins;
+        qreal startY = m_verGridMargins;
+        qreal endY = widgetRect.height() - m_verGridMargins;
+
+        if(col == 0 || col == m_rowMaxTasksCount * 2 + m_columns){
+            //startY += m_verGridMargins + (m_cellDimension * m_colMaxTasksCount);
+            startY += (m_cellDimension * m_colMaxTasksCount);
+            //endY -= m_verGridMargins;
+        }else if((col > 0 && col < m_rowMaxTasksCount) ||
+                   (col > m_columns + m_rowMaxTasksCount && col < m_rowMaxTasksCount * 2 + m_columns)){
+            continue;
+        }
+
+        QPointF startPoint;
+        startPoint.setX(coordX);
+        startPoint.setY(startY);
+
+        QPointF endPoint;
+        endPoint.setX(coordX);
+        endPoint.setY(endY);
+
+        QLineF line(startPoint, endPoint);
+        painter.drawLine(line);
+    }
+    for(quint8 row = 0;
+         row <= m_colMaxTasksCount + m_rows;
+         row++){
+
+        qreal startX = m_horGridMargins;
+        qreal endX = widgetRect.width() - m_horGridMargins;
+        qreal coordY = ((qreal) row) * m_cellDimension + m_verGridMargins;
+
+        if(row == 0){
+            startX += (m_cellDimension * m_rowMaxTasksCount);
+            endX -= (m_cellDimension * m_rowMaxTasksCount);
+        }else if(row > 0 && row < m_colMaxTasksCount){
+            continue;
+        }
+
+        QPointF startPoint;
+        startPoint.setX(startX);
+        startPoint.setY(coordY);
+
+        QPointF endPoint;
+        endPoint.setX(endX);
+        endPoint.setY(coordY);
+
+        QLineF line(startPoint, endPoint);
+        painter.drawLine(line);
+    }
+
+}
+
+/*void GameMatrix::paintEvent(QPaintEvent* event){
 
     QPainter painter(this);
     painter.scale(m_scale, m_scale);
@@ -52,12 +155,12 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     painter.setRenderHint(QPainter::Antialiasing);
     painter.fillRect(rect(), backgroundColor);
 
-    qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_width);
-    qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_height);
+    qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
+    qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
 
     QPen pen(QColor(12, 59, 94), m_gridWidth);
     painter.setPen(pen);
-    for(qreal w = 0; w < m_width; w++){
+    for(qreal w = 0; w < m_columns; w++){
         if(((int)w) % 5 == 0){
             pen.setWidth(m_gridWidth + 3);
             painter.setPen(pen);
@@ -68,11 +171,11 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         QLineF line;
 
         QPointF start;
-        start.setX(w * ((qreal)this->rect().width() / (qreal)m_width));
+        start.setX(w * ((qreal)this->rect().width() / (qreal)m_columns));
         start.setY(0);
 
         QPointF end;
-        end.setX(w * ((qreal)this->rect().width() / (qreal)m_width));
+        end.setX(w * ((qreal)this->rect().width() / (qreal)m_columns));
         end.setY(rect().height());
 
         line.setP1(start);
@@ -81,7 +184,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         painter.drawLine(line);
 
     }
-    for(qreal h = 0; h < m_height; h++){
+    for(qreal h = 0; h < m_rows; h++){
         if(((int)h) % 5 == 0){
             pen.setWidth(m_gridWidth + 2);
             painter.setPen(pen);
@@ -93,11 +196,11 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
         QPointF start;
         start.setX(0);
-        start.setY(h * ((qreal)this->rect().height() / (qreal)m_height));
+        start.setY(h * ((qreal)this->rect().height() / (qreal)m_rows));
 
         QPointF end;
         end.setX(rect().width());
-        end.setY(h * ((qreal)this->rect().height() / (qreal)m_height));
+        end.setY(h * ((qreal)this->rect().height() / (qreal)m_rows));
 
         line.setP1(start);
         line.setP2(end);
@@ -115,8 +218,8 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
     std::vector<QRectF> checkedRects;
     std::vector<QRectF> crossedRects;
-    for(quint8 h = 0; h < m_height; h++){
-        for(quint8 w = 0; w < m_width; w++){
+    for(quint8 h = 0; h < m_rows; h++){
+        for(quint8 w = 0; w < m_columns; w++){
             if(m_matrix[h][w] != CellState::NEUTRAL){
                 QRectF cell;
                 cell.setX(w * cellWidth + cellMargins);
@@ -177,12 +280,13 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         m_selectionBuffer.m_valid = false;
     }
 
-}
+}*/
 
 void GameMatrix::mousePressEvent(QMouseEvent *e){
     m_selectBegin = e->pos();
-    qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_width);
-    qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_height);
+    // TODO: add scale calculations ( [var]  / m_scale);
+    qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
+    qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
     int cellX = (int)((qreal)m_selectBegin.x() / (qreal)cellWidth);
     int cellY = (int)((qreal)m_selectBegin.y() / (qreal)cellHeight);
 
@@ -208,6 +312,7 @@ void GameMatrix::mousePressEvent(QMouseEvent *e){
 
 void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
     QPointF startSelect;
+    // TODO: add scale calculations ( [var]  / m_scale);
     startSelect.setX(std::min(e->pos().x(), m_selectBegin.x()));
     startSelect.setY(std::min(e->pos().y(), m_selectBegin.y()));
 
@@ -239,8 +344,8 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
         startSelect.setY(0);
     }
 
-    qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_width);
-    qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_height);
+    qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
+    qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
 
     QRectF selectionRect(startSelect, endSelect);
     int startCellX = (int)((qreal)selectionRect.x() / (qreal)cellWidth);
@@ -280,8 +385,9 @@ void GameMatrix::leaveEvent(QEvent* e){
 }
 
 void GameMatrix::mouseMoveEvent(QMouseEvent* e){
-    m_mousePos = e->pos();
+    m_mousePos = e->pos() / m_scale;
     if(e->buttons() & (Qt::LeftButton | Qt::RightButton)){
+        // TODO: add scale calculations ( [var]  / m_scale);
         QPointF startSelect;
         startSelect.setX(std::min(e->pos().x(), m_selectBegin.x()));
         startSelect.setY(std::min(e->pos().y(), m_selectBegin.y()));
@@ -314,8 +420,8 @@ void GameMatrix::mouseMoveEvent(QMouseEvent* e){
             startSelect.setY(0);
         }
 
-        qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_width);
-        qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_height);
+        qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
+        qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
 
         QRectF selectionRect(startSelect, endSelect);
         int startCellX = (int)((qreal)selectionRect.x() / (qreal)cellWidth);

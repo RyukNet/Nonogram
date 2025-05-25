@@ -154,9 +154,53 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         painter.drawLine(line);
     }
 
+    QFontMetricsF fontMetric(painter.font());
+    // Wrtie Tasks
+    {
+        // columns tasks
+        qreal colX = m_horGridMargins + (m_cellDimension * m_rowMaxTasksCount);
+        for(quint8 col = 0; col < m_colsTasks.size(); col++){
+            int diff = m_colMaxTasksCount - m_colsTasks[col].size();
+            qreal colY = m_verGridMargins + Q_REAL(diff + 1) * m_cellDimension - painter.font().pixelSize() / 2;
+            for(quint8 cell = 0; cell < m_colsTasks[col].size(); cell++){
+                QString numText = QString::number(m_colsTasks[col][cell]);
+                qreal textWidth = fontMetric.horizontalAdvance(numText);
+
+
+                qreal tmpColX = colX + (m_cellDimension - textWidth) / 2;
+                painter.drawText(QPointF(tmpColX, colY), numText);
+                colY += m_cellDimension;
+            }
+            colX += m_cellDimension;
+        }
+    }
+    {
+        // row tasks
+        qreal colY = m_verGridMargins + (m_cellDimension * (m_colMaxTasksCount + 1)) - painter.font().pixelSize() / 2;
+        for(quint8 row = 0; row < m_rowsTasks.size(); row++){
+            int diff = m_rowMaxTasksCount - m_rowsTasks[row].size();
+            qreal col1X = m_horGridMargins + Q_REAL(diff) * m_cellDimension;
+            qreal col2X = m_horGridMargins + (m_columns + m_rowMaxTasksCount) * m_cellDimension;
+            for(quint8 cell = 0; cell < m_rowsTasks[row].size(); cell++){
+                QString numText1 = QString::number(m_rowsTasks[row][cell]);
+                qreal textWidth1 = fontMetric.horizontalAdvance(numText1);
+                qreal tmpCol1X = col1X + (m_cellDimension - textWidth1) / 2;
+                painter.drawText(QPointF(tmpCol1X, colY), numText1);
+                col1X += m_cellDimension;
+
+                QString numText2 = QString::number(m_rowsTasks[row][m_rowsTasks[row].size() - (cell + 1)]);
+                //QString numText2 = QString::number(m_rowsTasks[row][cell]);
+                qreal textWidth2  = fontMetric.horizontalAdvance(numText2);
+                qreal tmpCol2X = col2X +(m_cellDimension - textWidth2) / 2;
+                painter.drawText(QPointF(tmpCol2X, colY), numText2);
+                col2X += m_cellDimension;
+            }
+            colY += m_cellDimension;
+        }
+    }
 
     
-    painter.fillRect(m_matrixArea, Qt::red);
+    //painter.fillRect(m_matrixArea, Qt::red);
     if(!m_mousePos.isNull()){
         
         QPointF mousePos = m_mousePos - m_matrixArea.topLeft();

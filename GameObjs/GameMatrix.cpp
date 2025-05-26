@@ -22,7 +22,7 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     ,m_columns(engine->columns())
     ,m_rows(engine->rows())
     ,m_matrix(engine->rows(), std::vector<CellState>(engine->columns(), CellState::NEUTRAL))
-    ,m_backGroundColor(255, 0, 0, 0)
+    ,m_backGroundColor(255, 255, 255, 255)
     ,m_gridColor(0, 0, 0)
     ,m_checkColor(10, 46, 74)
     ,m_crossColor(117, 29, 31)
@@ -297,9 +297,42 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     painter.setBrush(m_crossColor);
     painter.drawRects(crossedRects.data(), crossedRects.size());
 
-    /// Paint slection if any
+    /// Paint selection if any
     if(m_selectionBuffer.valid){
+        std::vector<QRectF> selectedRects(0);
+        if(m_selectionBuffer.area == MATRIX){
+            int startX = std::min(m_selectionBuffer.startCell.x(), m_selectionBuffer.endCell.x());
+            int startY = std::min(m_selectionBuffer.startCell.y(), m_selectionBuffer.endCell.y());
+            int endX = std::max(m_selectionBuffer.startCell.x(), m_selectionBuffer.endCell.x());
+            int endY = std::max(m_selectionBuffer.startCell.y(), m_selectionBuffer.endCell.y());
 
+            for(quint8 h = startY; h <= endY; h++){
+                for(quint8 w = startX; w <= endX; w++){
+                    QRectF cell;
+                    cell.setX(m_horGridMargins + (w * m_cellDimension) + cellMargins);
+                    cell.setY(m_verGridMargins + (h * m_cellDimension) + cellMargins);
+                    cell.setWidth(m_cellDimension - (cellMargins * 2));
+                    cell.setHeight(m_cellDimension - (cellMargins * 2));
+                    selectedRects.push_back(cell);
+                }
+            }
+            switch(m_selectionBuffer.actionMode){
+            case VOIDING:
+                painter.setBrush(m_backGroundColor);
+                break;
+            case CHECKING:
+                painter.setBrush(m_checkColor);
+                break;
+            case CROSSING:
+                painter.setBrush(m_crossColor);
+                break;
+            }
+            painter.drawRects(selectedRects.data(), selectedRects.size());
+            //m_selectionBuffer.startCell = QPoint();
+            //m_selectionBuffer.endCell = QPoint();
+            //m_selectionBuffer.area = NONE;
+            //m_selectionBuffer.valid = false;
+        }
     }
 
     /// For Debug
@@ -488,7 +521,9 @@ void GameMatrix::mousePressEvent(QMouseEvent *e){
         m_selectionBuffer.endCell = QPoint();
         m_selectionBuffer.area = NONE;
         m_selectionBuffer.valid = false;
+        repaint();
         QWidget::mousePressEvent(e);
+        return;
     }
 
     m_selectionBuffer.startCell = cellCoord;

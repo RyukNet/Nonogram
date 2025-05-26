@@ -347,19 +347,15 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         QRectF currentRect;
         switch(m_mousePos.area){
         case MATRIX:
-            //highlightPen = m_highlightColor;
             currentRect.setRect(m_matrixArea.x(), m_matrixArea.y(), m_matrixArea.width(), m_matrixArea.height());
             break;
         case TOP_TASKS:
-            //highlightPen.setColor(QColor(255, 0, 0));
             currentRect.setRect(m_colTasksArea.x(), m_colTasksArea.y(), m_colTasksArea.width(), m_colTasksArea.height());
             break;
         case LEFT_TASKS:
-            //highlightPen.setColor(QColor(0, 255, 0));
             currentRect.setRect(m_leftRowTasksArea.x(), m_leftRowTasksArea.y(), m_leftRowTasksArea.width(), m_leftRowTasksArea.height());
             break;
-        case RIGHT_TASKS :
-            //highlightPen.setColor(QColor(0, 0, 255));
+        case RIGHT_TASKS:
             currentRect.setRect(m_rightRowTasksArea.x(), m_rightRowTasksArea.y(), m_rightRowTasksArea.width(), m_rightRowTasksArea.height());
             break;
         default:

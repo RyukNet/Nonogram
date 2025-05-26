@@ -22,26 +22,14 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     ,m_columns(engine->columns())
     ,m_rows(engine->rows())
     ,m_matrix(engine->rows(), std::vector<CellState>(engine->columns(), CellState::NEUTRAL))
-    //,m_mousePos((0, 0), NONE)
     ,m_backGroundColor(255, 0, 0, 0)
     ,m_gridColor(0, 0, 0)
-    ,m_checkColor(Qt::black)
-    ,m_crossColor(Qt::red)
+    ,m_checkColor(10, 46, 74)
+    ,m_crossColor(117, 29, 31)
     ,m_matrixArea(0, 0, 0, 0)
     ,m_highlightColor(98, 171, 245)
 {
     setMouseTracking(true);
-    /*QSizePolicy sizePolicy = this->sizePolicy();
-    //sizePolicy.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
-    //sizePolicy.setVerticalPolicy(QSizePolicy::MinimumExpanding);
-    sizePolicy.setWidthForHeight(true);
-    sizePolicy.setHeightForWidth(true);
-    sizePolicy.setHorizontalPolicy(QSizePolicy::Minimum);
-    sizePolicy.setVerticalPolicy(QSizePolicy::Minimum);
-    setSizePolicy(sizePolicy);
-    
-    //setFixedHeight(1000);
-    //setFixedWidth(1000);*/
     auto rowsNumbers = engine->rowsTasks();
     std::for_each(rowsNumbers.begin(), rowsNumbers.end(), [&](const std::vector<quint8> row){
         std::vector<Task> taskRow(0);
@@ -83,6 +71,21 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
 
 int GameMatrix::heightForWidth(int w) const{
     return (qreal)w / ((qreal)m_columns / (qreal)m_rows);
+}
+
+bool GameMatrix::pointInGameAreas(const QPointF& pos) const{
+    return (m_matrixArea.contains(pos) || m_colTasksArea.contains(pos) ||
+            m_leftRowTasksArea.contains(pos) || m_rightRowTasksArea.contains(pos));
+}
+
+QPoint GameMatrix::getCellCoord(const QPointF& pos) const{
+    if(!pointInGameAreas(pos)){
+        return QPoint();
+    }
+    int cellX = (pos.x() - m_horGridMargins) / m_cellDimension;
+    int cellY = (pos.y() - m_verGridMargins) / m_cellDimension;
+    QPoint point(cellX, cellY);
+    return point;
 }
 
 void GameMatrix::resizeEvent(QResizeEvent* event){
@@ -262,6 +265,43 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         }
     }
 
+    /// Cells
+    qreal cellMargins = m_cellDimension - (m_cellDimension * 0.92);
+    std::vector<QRectF> checkRects;
+    std::vector<QRectF> crossedRects;
+    for(quint8 h = 0; h < m_rows; h++){
+        for(quint8 w = 0; w < m_columns; w++){
+            if(m_matrix[h][w] != CellState::NEUTRAL){
+                QRectF cell;
+                cell.setX(m_horGridMargins + ((w + m_rowMaxTasksCount) * m_cellDimension) + cellMargins);
+                cell.setY(m_verGridMargins + ((h + m_colMaxTasksCount) * m_cellDimension) + cellMargins);
+                cell.setWidth(m_cellDimension - (cellMargins * 2));
+                cell.setHeight(m_cellDimension - (cellMargins * 2));
+                if(m_matrix[h][w] == CellState::CHECKED){
+                    checkRects.push_back(cell);
+                }else if(m_matrix[h][w] == CellState::CROSSED){
+                    crossedRects.push_back(cell);
+                }
+            }
+        }
+    }
+    QPen noBorderPen = painter.pen();
+    noBorderPen.setWidth(0);
+    noBorderPen.setStyle(Qt::PenStyle::NoPen);
+    painter.setPen(noBorderPen);
+
+    painter.setBrush(m_checkColor);
+    painter.drawRects(checkRects.data(), checkRects.size());
+
+
+    painter.setBrush(m_crossColor);
+    painter.drawRects(crossedRects.data(), crossedRects.size());
+
+    /// Paint slection if any
+    if(m_selectionBuffer.valid){
+
+    }
+
     /// For Debug
     //painter.fillRect(m_colTasksArea, Qt::red);
     //painter.fillRect(m_leftRowTasksArea, Qt::red);
@@ -269,7 +309,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
     /// Paint highlight
     if(!m_mousePos.pos.isNull()){
-        QPen highlightPen(QColor(255, 255, 0));
+        QPen highlightPen(m_highlightColor);
         QRectF currentRect;
         switch(m_mousePos.area){
         case MATRIX:
@@ -301,6 +341,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         QRect hightlightedCell(highlightX, highlightY, m_cellDimension + 2, m_cellDimension + 2);
         
         painter.setPen(highlightPen);
+        painter.setBrush(m_highlightColor);
         painter.drawRect(hightlightedCell);
     }
 }
@@ -440,33 +481,117 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 }*/
 
 void GameMatrix::mousePressEvent(QMouseEvent *e){
-    /*m_selectBegin = e->pos();
-    qreal cellWidth = ((qreal)rect().width()) / ((qreal)m_columns);
-    qreal cellHeight = ((qreal)rect().height()) / ((qreal)m_rows);
-    int cellX = (int)((qreal)m_selectBegin.x() / (qreal)cellWidth);
-    int cellY = (int)((qreal)m_selectBegin.y() / (qreal)cellHeight);
 
+    QPoint cellCoord = getCellCoord(m_mousePos.pos);
+    if(cellCoord.isNull()){
+        m_selectionBuffer.startCell = QPoint();
+        m_selectionBuffer.endCell = QPoint();
+        m_selectionBuffer.area = NONE;
+        m_selectionBuffer.valid = false;
+        QWidget::mousePressEvent(e);
+    }
 
-    if(e->button() == Qt::LeftButton){
-        bool checked = m_matrix[cellY][cellX] == CellState::CHECKED;
-        if(checked){
-            m_currentMode = ActionMode::VOIDING;
-        }else{
-            m_currentMode = ActionMode::CHECKING;
+    m_selectionBuffer.startCell = cellCoord;
+    m_selectionBuffer.endCell = cellCoord;
+    m_selectionBuffer.area = m_mousePos.area;
+
+    if(m_mousePos.area == MATRIX){
+        m_selectionBuffer.valid = true;
+        QPoint relativeCellCoord = cellCoord;
+        relativeCellCoord.setX(relativeCellCoord.x() - m_rowMaxTasksCount);
+        relativeCellCoord.setY(relativeCellCoord.y() - m_colMaxTasksCount);
+        CellState cellState = m_matrix[relativeCellCoord.y()][relativeCellCoord.x()];
+        if(e->button() == Qt::LeftButton){
+            if(cellState == CHECKED){
+                m_selectionBuffer.actionMode = VOIDING;
+            }else{
+                m_selectionBuffer.actionMode = CHECKING;
+            }
+        }else if(e->button() == Qt::RightButton){
+            if(cellState == CROSSED){
+                m_selectionBuffer.actionMode = VOIDING;
+            }else{
+                m_selectionBuffer.actionMode = CROSSING;
+            }
         }
-    }else if(e->button() == Qt::RightButton){
-        bool crossed = m_matrix[cellY][cellX] == CellState::CROSSED;
-        if(crossed){
-            m_currentMode = ActionMode::VOIDING;
-        }else{
-            m_currentMode = ActionMode::CROSSING;
+    }else if(m_mousePos.area == TOP_TASKS){
+        QPoint relativeCellCoord = cellCoord;
+        relativeCellCoord.setX(relativeCellCoord.x() - m_rowMaxTasksCount);
+
+        int diff = m_colMaxTasksCount - m_colsTasks[relativeCellCoord.x()].size();
+        if(relativeCellCoord.y() >= (diff)){
+            m_selectionBuffer.valid = true;
+            relativeCellCoord.setY(relativeCellCoord.y() - diff);
+            if(m_colsTasks[relativeCellCoord.x()][relativeCellCoord.y()].crossed){
+                m_selectionBuffer.actionMode = VOIDING;
+            }else{
+                m_selectionBuffer.actionMode = CROSSING;
+            }
+        }else{ // Clicked on blank cell
+            m_selectionBuffer.valid = false;
         }
-    }*/
-    
+    }else if(m_mousePos.area == LEFT_TASKS){
+        QPoint relativeCellCoord = cellCoord;
+        relativeCellCoord.setY(relativeCellCoord.y() - m_colMaxTasksCount);
+        int diff = m_rowMaxTasksCount - m_rowsTasks[relativeCellCoord.y()].size();
+        if(relativeCellCoord.x() >= diff){
+            m_selectionBuffer.valid = true;
+            relativeCellCoord.setX(relativeCellCoord.x() - diff);
+            if(m_rowsTasks[relativeCellCoord.y()][relativeCellCoord.x()].crossed){
+                m_selectionBuffer.actionMode = VOIDING;
+            }else{
+                m_selectionBuffer.actionMode = CROSSING;
+            }
+        }else{ // Clicked on blank cell
+            m_selectionBuffer.valid = false;
+        }
+    }else if(m_mousePos.area == RIGHT_TASKS){
+        QPoint relativeCellCoord = cellCoord;
+        relativeCellCoord.setY(relativeCellCoord.y() - m_colMaxTasksCount);
+        relativeCellCoord.setX(relativeCellCoord.x() - (m_rowMaxTasksCount + m_columns));
+        if(relativeCellCoord.x() < m_rowsTasks[relativeCellCoord.y()].size()){
+            m_selectionBuffer.valid = true;
+            if(m_rowsTasks[relativeCellCoord.y()][relativeCellCoord.x()].crossed){
+                m_selectionBuffer.actionMode = VOIDING;
+            }else{
+                m_selectionBuffer.actionMode = CROSSING;
+            }
+        }else{ // Clicked on blank cell
+            m_selectionBuffer.valid = false;
+        }
+    }
+    repaint();
     QWidget::mousePressEvent(e);
 }
 
 void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
+    int startX = std::min(m_selectionBuffer.startCell.x(), m_selectionBuffer.endCell.x());
+    int startY = std::min(m_selectionBuffer.startCell.y(), m_selectionBuffer.endCell.y());
+    int endX = std::max(m_selectionBuffer.startCell.x(), m_selectionBuffer.endCell.x());
+    int endY = std::max(m_selectionBuffer.startCell.y(), m_selectionBuffer.endCell.y());
+    if(m_selectionBuffer.area == MATRIX){
+        startX -= m_rowMaxTasksCount;
+        endX -= m_rowMaxTasksCount;
+        startY -= m_colMaxTasksCount;
+        endY -= m_colMaxTasksCount;
+        QRect selectionArea(startX, startY, (endX - startX) + 1, (endY - startY) + 1);
+        for(int h = startY; h <= selectionArea.bottom(); h++){
+            for(int w = startX; w <= selectionArea.right(); w++){
+                switch(m_selectionBuffer.actionMode){
+                case CHECKING:
+                    m_matrix[h][w] =  CellState::CHECKED;
+                    break;
+                case CROSSING:
+                    m_matrix[h][w] =  CellState::CROSSED;
+                    break;
+                case VOIDING:
+                    m_matrix[h][w] =  CellState::NEUTRAL;
+                    break;
+                }
+            }
+        }
+    }
+
     /*QPointF startSelect;
     startSelect.setX(std::min(e->pos().x(), m_selectBegin.x()));
     startSelect.setY(std::min(e->pos().y(), m_selectBegin.y()));
@@ -529,7 +654,10 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
     }
 
     m_selectBegin = QPoint();*/
-    
+    m_selectionBuffer.startCell = QPoint();
+    m_selectionBuffer.endCell = QPoint();
+    m_selectionBuffer.area = NONE;
+    m_selectionBuffer.valid = false;
     repaint();
     QWidget::mouseReleaseEvent(e);
 }
@@ -542,8 +670,7 @@ void GameMatrix::leaveEvent(QEvent* e){
 }
 
 void GameMatrix::mouseMoveEvent(QMouseEvent* e){
-    if(m_matrixArea.contains(e->pos()) || m_colTasksArea.contains(e->pos()) ||
-        m_leftRowTasksArea.contains(e->pos()) || m_rightRowTasksArea.contains(e->pos())){
+    if(pointInGameAreas(e->pos())){
         m_mousePos.pos = e->pos();
         if(m_matrixArea.contains(m_mousePos.pos)){
             m_mousePos.area = Area::MATRIX;
@@ -555,6 +682,19 @@ void GameMatrix::mouseMoveEvent(QMouseEvent* e){
             m_mousePos.area = Area::RIGHT_TASKS;
         }
         if(e->buttons() & (Qt::LeftButton | Qt::RightButton)){
+            if(m_selectionBuffer.area == MATRIX && m_matrixArea.contains(e->pos())){
+                m_selectionBuffer.endCell = getCellCoord(e->pos());
+                //qDebug() << "Selection dim : " << std::abs(m_selectionBuffer.startCell.x() - m_selectionBuffer.endCell.x()) << ", " << std::abs(m_selectionBuffer.startCell.y() - m_selectionBuffer.endCell.y());
+            }else if(m_selectionBuffer.area == TOP_TASKS && m_colTasksArea.contains(e->pos())){
+                m_selectionBuffer.endCell.setY(getCellCoord(e->pos()).y());
+                //qDebug() << "Selection dim : " << std::abs(m_selectionBuffer.startCell.x() - m_selectionBuffer.endCell.x()) << ", " << std::abs(m_selectionBuffer.startCell.y() - m_selectionBuffer.endCell.y());
+            }else if((m_selectionBuffer.area == LEFT_TASKS && m_leftRowTasksArea.contains(e->pos())) ||
+                       (m_selectionBuffer.area == RIGHT_TASKS && m_rightRowTasksArea.contains(e->pos()))){
+                m_selectionBuffer.endCell.setX(getCellCoord(e->pos()).x());
+                //qDebug() << "Selection dim : " << std::abs(m_selectionBuffer.startCell.x() - m_selectionBuffer.endCell.x()) << ", " << std::abs(m_selectionBuffer.startCell.y() - m_selectionBuffer.endCell.y());
+            }
+        }
+        /*if(e->buttons() & (Qt::LeftButton | Qt::RightButton)){
             QPointF startSelect;
             startSelect.setX(std::min(e->pos().x(), m_selectBegin.x()));
             startSelect.setY(std::min(e->pos().y(), m_selectBegin.y()));
@@ -602,7 +742,7 @@ void GameMatrix::mouseMoveEvent(QMouseEvent* e){
             m_selectionBuffer.end_X = endCellX;
             m_selectionBuffer.end_Y = endCellY;
             m_selectionBuffer.m_valid = true;
-        }
+        }*/
     }else{
         m_mousePos.pos = QPoint();
         m_mousePos.area = Area::NONE;

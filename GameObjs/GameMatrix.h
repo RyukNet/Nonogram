@@ -46,7 +46,10 @@ protected:
     void leaveEvent(QEvent* event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
-    //void dra
+
+    bool pointInGameAreas(const QPointF& pos) const;
+    QPoint getCellCoord(const QPointF& pos) const;
+
     quint8 m_columns;
     quint8 m_rows;
 
@@ -84,7 +87,15 @@ protected:
         Area area = NONE;
     } m_mousePos;
 
-    ActionMode m_currentMode;
+    // Selection
+    struct SelectionBuffer{
+        QPoint startCell;
+        QPoint endCell;
+        Area area= NONE;
+        ActionMode actionMode;
+        bool valid = false;
+    } m_selectionBuffer;
+    /*ActionMode m_currentMode;
     QPoint m_selectBegin;
     struct SelectionBuffer{
         quint8 start_X;
@@ -92,6 +103,6 @@ protected:
         quint8 end_X;
         quint8 end_Y;
         bool m_valid = false;
-    } m_selectionBuffer;
+    } m_selectionBuffer;*/
 
 };

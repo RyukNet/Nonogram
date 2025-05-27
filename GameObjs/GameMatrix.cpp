@@ -224,42 +224,96 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         qreal colX = m_horGridMargins + (m_cellDimension * m_rowMaxTasksCount);
         for(quint8 col = 0; col < m_colsTasks.size(); col++){
             int diff = m_colMaxTasksCount - m_colsTasks[col].size();
-            qreal colY = m_verGridMargins + Q_REAL(diff + 1) * m_cellDimension - painter.font().pixelSize() / 2;
+            //qreal colY = m_verGridMargins + Q_REAL(diff + 1) * m_cellDimension - painter.font().pixelSize() / 2;
+            qreal colY = m_verGridMargins + Q_REAL(diff + 1) * m_cellDimension;
             for(quint8 cell = 0; cell < m_colsTasks[col].size(); cell++){
                 QString numText = QString::number(m_colsTasks[col][cell].task);
+                qreal textColY = colY - painter.font().pixelSize() / 2;
                 qreal textWidth = fontMetric.horizontalAdvance(numText);
-                qreal tmpColX = colX + (m_cellDimension - textWidth) / 2;
+                qreal textColX = colX + (m_cellDimension - textWidth) / 2;
 
-                painter.drawText(QPointF(tmpColX, colY), numText);
-                colY += m_cellDimension;
+                painter.drawText(QPointF(textColX, textColY), numText);
 
                 // TODO check if crossed and paint cross if true
+                if(m_colsTasks[col][cell].crossed){
+                    QPointF firstLineTopLeft(colX, colY - m_cellDimension);
+                    QPointF firstLineBottomRight(colX + m_cellDimension, colY);
+
+                    QPointF secondLineBottomLeft(colX, colY);
+                    QPointF secondLineTopRight(colX + m_cellDimension, colY - m_cellDimension);
+
+                    QPen currentPen = painter.pen();
+                    QPen crossPen(m_crossColor);
+                    crossPen.setWidthF(2);
+                    painter.setPen(crossPen);
+                    painter.drawLine(firstLineTopLeft, firstLineBottomRight);
+                    painter.drawLine(secondLineBottomLeft, secondLineTopRight);
+                    painter.setPen(currentPen);
+                }
+
+
+                colY += m_cellDimension;
             }
             colX += m_cellDimension;
         }
     }
     {
         /// Rows tasks
-        qreal colY = m_verGridMargins + (m_cellDimension * (m_colMaxTasksCount + 1)) - painter.font().pixelSize() / 2;
+        //qreal colY = m_verGridMargins + (m_cellDimension * (m_colMaxTasksCount + 1)) - painter.font().pixelSize() / 2;
+        qreal colY = m_verGridMargins + (m_cellDimension * (m_colMaxTasksCount + 1));
         for(quint8 row = 0; row < m_rowsTasks.size(); row++){
             int diff = m_rowMaxTasksCount - m_rowsTasks[row].size();
             qreal col1X = m_horGridMargins + Q_REAL(diff) * m_cellDimension;
             qreal col2X = m_horGridMargins + (m_columns + m_rowMaxTasksCount) * m_cellDimension;
             for(quint8 cell = 0; cell < m_rowsTasks[row].size(); cell++){
+                qreal textColY = colY - painter.font().pixelSize() / 2;
+
                 QString numText1 = QString::number(m_rowsTasks[row][cell].task);
                 qreal textWidth1 = fontMetric.horizontalAdvance(numText1);
-                qreal tmpCol1X = col1X + (m_cellDimension - textWidth1) / 2;
-                painter.drawText(QPointF(tmpCol1X, colY), numText1);
+                qreal textCol1X = col1X + (m_cellDimension - textWidth1) / 2;
+                painter.drawText(QPointF(textCol1X, textColY), numText1);
+
+                // TODO check if crossed and paint cross if true
+                if(m_rowsTasks[row][cell].crossed){
+                    QPointF firstLineTopLeft(col1X, colY - m_cellDimension);
+                    QPointF firstLineBottomRight(col1X + m_cellDimension, colY);
+
+                    QPointF secondLineBottomLeft(col1X, colY);
+                    QPointF secondLineTopRight(col1X + m_cellDimension, colY - m_cellDimension);
+
+                    QPen currentPen = painter.pen();
+                    QPen crossPen(m_crossColor);
+                    crossPen.setWidthF(2);
+                    painter.setPen(crossPen);
+                    painter.drawLine(firstLineTopLeft, firstLineBottomRight);
+                    painter.drawLine(secondLineBottomLeft, secondLineTopRight);
+                    painter.setPen(currentPen);
+                }
                 col1X += m_cellDimension;
+
 
                 QString numText2 = QString::number(m_rowsTasks[row][cell].task);
                 qreal textWidth2  = fontMetric.horizontalAdvance(numText2);
-                qreal tmpCol2X = col2X +(m_cellDimension - textWidth2) / 2;
-
-                painter.drawText(QPointF(tmpCol2X, colY), numText2);
-                col2X += m_cellDimension;
+                qreal tmpCol2X = col2X + (m_cellDimension - textWidth2) / 2;
+                painter.drawText(QPointF(tmpCol2X, textColY), numText2);
 
                 // TODO check if crossed and paint cross if true
+                if(m_rowsTasks[row][cell].crossed){
+                    QPointF firstLineTopLeft(col2X, colY - m_cellDimension);
+                    QPointF firstLineBottomRight(col2X + m_cellDimension, colY);
+
+                    QPointF secondLineBottomLeft(col2X, colY);
+                    QPointF secondLineTopRight(col2X + m_cellDimension, colY - m_cellDimension);
+
+                    QPen currentPen = painter.pen();
+                    QPen crossPen(m_crossColor);
+                    crossPen.setWidthF(2);
+                    painter.setPen(crossPen);
+                    painter.drawLine(firstLineTopLeft, firstLineBottomRight);
+                    painter.drawLine(secondLineBottomLeft, secondLineTopRight);
+                    painter.setPen(currentPen);
+                }
+                col2X += m_cellDimension;
             }
             colY += m_cellDimension;
         }
@@ -488,6 +542,32 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
                 }
             }
         }
+    }else if(m_selectionBuffer.area == TOP_TASKS){
+        startX -= m_rowMaxTasksCount;
+        endX -= m_rowMaxTasksCount;
+        if(m_selectionBuffer.valid){
+            quint8 diffY = m_colMaxTasksCount - m_colsTasks[startX].size();
+            if(startY < diffY){
+                startY = 0;
+                endY -= (diffY - startY);
+            }else{
+                startY -= diffY;
+                endY -= diffY;
+            }
+            //int height = (endY - startY);
+            //QRect selectionArea(startX, startY, (endX - startX) + 1, height);
+            //qDebug() << "from : " << selectionArea.x() << ", " << selectionArea.y() << " -> " << selectionArea.width() << ", " << selectionArea.height();
+            //std::cout << ((int) m_colsTasks[startX][0].task) << std::endl;
+            //qDebug() << "height : " << (int)height;
+            for(int h = startY; h <= endY ; h++){
+                //std::cout << ((int) m_colsTasks[startX][h].task) << ", ";
+                //std::cout << startX << "," << h << "|";
+                //qDebug() << startX << "," << h << "|";
+                m_colsTasks[startX][h].crossed = m_selectionBuffer.actionMode == CROSSING;
+            }
+        }
+    }else if(m_mousePos.area == LEFT_TASKS){
+        //startX
     }
 
     m_selectionBuffer.startCell = QPoint();

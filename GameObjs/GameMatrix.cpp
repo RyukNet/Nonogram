@@ -222,6 +222,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     {
         /// Columns tasks
         qreal colX = m_horGridMargins + (m_cellDimension * m_rowMaxTasksCount);
+        qreal crossMargins = m_cellDimension / 4;
         for(quint8 col = 0; col < m_colsTasks.size(); col++){
             int diff = m_colMaxTasksCount - m_colsTasks[col].size();
             //qreal colY = m_verGridMargins + Q_REAL(diff + 1) * m_cellDimension - painter.font().pixelSize() / 2;
@@ -236,15 +237,15 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                 // TODO check if crossed and paint cross if true
                 if(m_colsTasks[col][cell].crossed){
-                    QPointF firstLineTopLeft(colX, colY - m_cellDimension);
-                    QPointF firstLineBottomRight(colX + m_cellDimension, colY);
+                    QPointF firstLineTopLeft(colX + crossMargins, colY - m_cellDimension + crossMargins);
+                    QPointF firstLineBottomRight(colX + m_cellDimension - crossMargins, colY - crossMargins);
 
-                    QPointF secondLineBottomLeft(colX, colY);
-                    QPointF secondLineTopRight(colX + m_cellDimension, colY - m_cellDimension);
+                    QPointF secondLineBottomLeft(colX + crossMargins, colY - crossMargins);
+                    QPointF secondLineTopRight(colX + m_cellDimension - crossMargins, colY - m_cellDimension + crossMargins);
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidthF(2);
+                    crossPen.setWidthF(2.4);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);
@@ -261,6 +262,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         /// Rows tasks
         //qreal colY = m_verGridMargins + (m_cellDimension * (m_colMaxTasksCount + 1)) - painter.font().pixelSize() / 2;
         qreal colY = m_verGridMargins + (m_cellDimension * (m_colMaxTasksCount + 1));
+        qreal crossMargins = m_cellDimension / 4;
         for(quint8 row = 0; row < m_rowsTasks.size(); row++){
             int diff = m_rowMaxTasksCount - m_rowsTasks[row].size();
             qreal col1X = m_horGridMargins + Q_REAL(diff) * m_cellDimension;
@@ -275,15 +277,15 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                 // TODO check if crossed and paint cross if true
                 if(m_rowsTasks[row][cell].crossed){
-                    QPointF firstLineTopLeft(col1X, colY - m_cellDimension);
-                    QPointF firstLineBottomRight(col1X + m_cellDimension, colY);
+                    QPointF firstLineTopLeft(col1X + crossMargins, colY - m_cellDimension + crossMargins);
+                    QPointF firstLineBottomRight(col1X + m_cellDimension - crossMargins, colY - crossMargins);
 
-                    QPointF secondLineBottomLeft(col1X, colY);
-                    QPointF secondLineTopRight(col1X + m_cellDimension, colY - m_cellDimension);
+                    QPointF secondLineBottomLeft(col1X + crossMargins, colY - crossMargins);
+                    QPointF secondLineTopRight(col1X + m_cellDimension - crossMargins, colY - m_cellDimension + crossMargins);
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidthF(2);
+                    crossPen.setWidthF(2.4);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);
@@ -299,15 +301,15 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                 // TODO check if crossed and paint cross if true
                 if(m_rowsTasks[row][cell].crossed){
-                    QPointF firstLineTopLeft(col2X, colY - m_cellDimension);
-                    QPointF firstLineBottomRight(col2X + m_cellDimension, colY);
+                    QPointF firstLineTopLeft(col2X + crossMargins, colY - m_cellDimension + crossMargins);
+                    QPointF firstLineBottomRight(col2X + m_cellDimension - crossMargins, colY - crossMargins);
 
-                    QPointF secondLineBottomLeft(col2X, colY);
-                    QPointF secondLineTopRight(col2X + m_cellDimension, colY - m_cellDimension);
+                    QPointF secondLineBottomLeft(col2X + crossMargins, colY - crossMargins);
+                    QPointF secondLineTopRight(col2X + m_cellDimension - crossMargins, colY - m_cellDimension + crossMargins);
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidthF(2);
+                    crossPen.setWidthF(2.4);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);
@@ -580,7 +582,6 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
             if(endX >= m_rowsTasks[startY].size()){
                 endX = m_rowsTasks[startY].size() - 1;
             }
-            std::cout << startX << ", " << endX << std::endl;
             for(int w = startX; w <= endX; w++){
                 m_rowsTasks[startY][w].crossed = m_selectionBuffer.actionMode == CROSSING;
             }

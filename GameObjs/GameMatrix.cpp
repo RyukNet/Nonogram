@@ -544,7 +544,6 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
         }
     }else if(m_selectionBuffer.area == TOP_TASKS){
         startX -= m_rowMaxTasksCount;
-        endX -= m_rowMaxTasksCount;
         if(m_selectionBuffer.valid){
             quint8 diffY = m_colMaxTasksCount - m_colsTasks[startX].size();
             if(startY < diffY){
@@ -554,20 +553,38 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
                 startY -= diffY;
                 endY -= diffY;
             }
-            //int height = (endY - startY);
-            //QRect selectionArea(startX, startY, (endX - startX) + 1, height);
-            //qDebug() << "from : " << selectionArea.x() << ", " << selectionArea.y() << " -> " << selectionArea.width() << ", " << selectionArea.height();
-            //std::cout << ((int) m_colsTasks[startX][0].task) << std::endl;
-            //qDebug() << "height : " << (int)height;
             for(int h = startY; h <= endY ; h++){
-                //std::cout << ((int) m_colsTasks[startX][h].task) << ", ";
-                //std::cout << startX << "," << h << "|";
-                //qDebug() << startX << "," << h << "|";
                 m_colsTasks[startX][h].crossed = m_selectionBuffer.actionMode == CROSSING;
             }
         }
     }else if(m_mousePos.area == LEFT_TASKS){
-        //startX
+        startY -= m_colMaxTasksCount;
+        if(m_selectionBuffer.valid){
+            quint8 diffX = m_rowMaxTasksCount - m_rowsTasks[startY].size();
+            if(startX < diffX){
+                startX = 0;
+                endX -= (diffX - startX);
+            }else{
+                startX -= diffX;
+                endX -= diffX;
+            }
+            for(int w = startX; w <= endX; w++){
+                m_rowsTasks[startY][w].crossed = m_selectionBuffer.actionMode == CROSSING;
+            }
+        }
+    }else if(m_mousePos.area == RIGHT_TASKS){
+        startY -= m_colMaxTasksCount;
+        startX -= (m_columns + m_rowMaxTasksCount);
+        endX -= (m_columns + m_rowMaxTasksCount);
+        if(m_selectionBuffer.valid){
+            if(endX >= m_rowsTasks[startY].size()){
+                endX = m_rowsTasks[startY].size() - 1;
+            }
+            std::cout << startX << ", " << endX << std::endl;
+            for(int w = startX; w <= endX; w++){
+                m_rowsTasks[startY][w].crossed = m_selectionBuffer.actionMode == CROSSING;
+            }
+        }
     }
 
     m_selectionBuffer.startCell = QPoint();

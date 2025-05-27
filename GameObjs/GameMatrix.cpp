@@ -168,7 +168,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         if(col == 0 || std::abs(col - m_rowMaxTasksCount) % 5 == 0 || (col == m_rowMaxTasksCount * 2 + m_columns)){
             gridPen.setWidthF(2);
         }else{
-            gridPen.setWidthF(0.4);
+            gridPen.setWidthF(1);
         }
         painter.setPen(gridPen);
         
@@ -322,36 +322,64 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     }
 
     /// Cells
-    qreal cellMargins = m_cellDimension - (m_cellDimension * 0.92);
-    std::vector<QRectF> checkRects;
-    std::vector<QRectF> crossedRects;
-    for(quint8 h = 0; h < m_rows; h++){
-        for(quint8 w = 0; w < m_columns; w++){
-            if(m_matrix[h][w] != CellState::NEUTRAL){
-                QRectF cell;
-                cell.setX(m_horGridMargins + ((w + m_rowMaxTasksCount) * m_cellDimension) + cellMargins);
-                cell.setY(m_verGridMargins + ((h + m_colMaxTasksCount) * m_cellDimension) + cellMargins);
-                cell.setWidth(m_cellDimension - (cellMargins * 2));
-                cell.setHeight(m_cellDimension - (cellMargins * 2));
-                if(m_matrix[h][w] == CellState::CHECKED){
-                    checkRects.push_back(cell);
-                }else if(m_matrix[h][w] == CellState::CROSSED){
-                    crossedRects.push_back(cell);
+    qreal cellMargins = m_cellDimension - (m_cellDimension * 0.90);
+    {
+        std::vector<QRectF> checkRects;
+        std::vector<QLineF> crossedLines;
+        for(quint8 h = 0; h < m_rows; h++){
+            for(quint8 w = 0; w < m_columns; w++){
+                if(m_matrix[h][w] != CellState::NEUTRAL){
+                    QRectF cell;
+                    cell.setX(m_horGridMargins + ((w + m_rowMaxTasksCount) * m_cellDimension) + cellMargins);
+                    cell.setY(m_verGridMargins + ((h + m_colMaxTasksCount) * m_cellDimension) + cellMargins);
+                    cell.setWidth(m_cellDimension - (cellMargins * 2));
+                    cell.setHeight(m_cellDimension - (cellMargins * 2));
+                    if(m_matrix[h][w] == CellState::CHECKED){
+                        checkRects.push_back(cell);
+                    }else if(m_matrix[h][w] == CellState::CROSSED){
+                        qreal crossMargin = m_cellDimension * 0.33;
+                        qreal topLeftX = m_horGridMargins + ((w + m_rowMaxTasksCount) * m_cellDimension) + crossMargin;
+                        qreal topLeftY = m_verGridMargins + ((h + m_colMaxTasksCount) * m_cellDimension) + crossMargin;
+                        qreal bottomRightX = topLeftX + m_cellDimension - (crossMargin * 2);
+                        qreal bottomRightY = topLeftY + m_cellDimension - (crossMargin * 2);
+                        QPointF topLeft(topLeftX, topLeftY);
+                        QPointF bottomRight(bottomRightX, bottomRightY);
+                        QLineF firstLine(topLeft, bottomRight);
+
+                        qreal bottomLeftX = topLeftX;
+                        qreal bottomLeftY = bottomRightY;
+                        qreal topRightX = bottomRightX;
+                        qreal topRightY = topLeftY;
+                        QPointF bottomLeft(bottomLeftX, bottomLeftY);
+                        QPointF topRight(topRightX, topRightY);
+                        QLineF secondLine(bottomLeft, topRight);
+
+                        crossedLines.push_back(firstLine);
+                        crossedLines.push_back(secondLine);
+                    }
                 }
             }
         }
+        QPen noBorderPen = painter.pen();
+        noBorderPen.setWidth(0);
+        noBorderPen.setStyle(Qt::PenStyle::NoPen);
+        painter.setPen(noBorderPen);
+
+        painter.setBrush(m_checkColor);
+        painter.drawRects(checkRects.data(), checkRects.size());
+
+        QPen currentPen = painter.pen();
+
+        QPen crossPen(m_crossColor);
+        crossPen.setWidth(m_cellDimension / 8);
+        painter.setPen(crossPen);
+
+        painter.setBrush(m_crossColor);
+        painter.drawLines(crossedLines.data(), crossedLines.size());
+
+        painter.setPen(currentPen);
+
     }
-    QPen noBorderPen = painter.pen();
-    noBorderPen.setWidth(0);
-    noBorderPen.setStyle(Qt::PenStyle::NoPen);
-    painter.setPen(noBorderPen);
-
-    painter.setBrush(m_checkColor);
-    painter.drawRects(checkRects.data(), checkRects.size());
-
-
-    painter.setBrush(m_crossColor);
-    painter.drawRects(crossedRects.data(), crossedRects.size());
 
     /// Paint selection if any
     if(m_selectionBuffer.valid){

@@ -15,6 +15,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 include_directories(Engine)
 include_directories(Generator)
 include_directories(GameObjs)
+include_directories(Widgets)
+include_directories(Themes)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -29,6 +31,12 @@ set(PROJECT_SOURCES
 
         Generator/MatrixGenerator.h
         Generator/MatrixGenerator.cpp
+
+        Widgets/ToggleSwitch.h
+        Widgets/ToggleSwitch.cpp
+
+        Themes/Theme.h
+        Themes/Theme.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

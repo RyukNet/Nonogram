@@ -9,6 +9,8 @@
 #include <QPushButton>
 #include <QSizePolicy>
 
+#include "Theme.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -31,8 +33,14 @@ MainWindow::MainWindow(QWidget *parent)
     QVBoxLayout* gameVLay = new QVBoxLayout();
     matrixViewLay->addLayout(gameVLay);
 
+    QHBoxLayout* headerLay = new QHBoxLayout();
+    gameVLay->addLayout(headerLay);
+
     m_timerLabel = new QLabel("__:__");
-    gameVLay->addWidget(m_timerLabel, 0, Qt::AlignCenter);
+    headerLay->addWidget(m_timerLabel, 0, Qt::AlignCenter);
+
+    m_themeToggle = new ToggleSwitch();
+    headerLay->addWidget(m_themeToggle);
 
     m_gameMatrix = new GameMatrix(m_gameEngine);
     gameVLay->addWidget(m_gameMatrix, 1);
@@ -102,6 +110,10 @@ void MainWindow::setConnections(){
     });
 
     connect(m_gameEngine, &GameEngine::resized, m_gameMatrix, &GameMatrix::resizeGrid);
+
+    connect(m_themeToggle, &ToggleSwitch::checked, this, [&](bool check){
+        Theme::setDarkMode(check);
+    });
 }
 
 MainWindow::~MainWindow() {}

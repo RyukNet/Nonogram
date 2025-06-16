@@ -164,15 +164,15 @@ QPoint GameMatrix::getCellCoord(const QPointF& pos) const{
 
 void GameMatrix::resizeEvent(QResizeEvent* event){
     QRectF widgetRect = rect();
-    
+
     qreal horMinCell = widgetRect.width() / Q_REAL(m_columns + m_rowMaxTasksCount * 2);
     qreal verMinCell = widgetRect.height() / Q_REAL(m_rows + m_colMaxTasksCount);
-    
+
     m_cellDimension = std::min(horMinCell, verMinCell);
-    
+
     m_horGridMargins = (widgetRect.width() - (m_cellDimension * (m_columns + m_rowMaxTasksCount * 2))) / 2;
     m_verGridMargins = (widgetRect.height() - (m_cellDimension * (m_rows + m_colMaxTasksCount))) / 2;
-    
+
     m_matrixArea = widgetRect;
     m_matrixArea.setWidth(widgetRect.width() - (m_horGridMargins + (m_cellDimension * m_rowMaxTasksCount)));
     m_matrixArea.setHeight(widgetRect.height() - m_verGridMargins);
@@ -205,7 +205,7 @@ void GameMatrix::resizeEvent(QResizeEvent* event){
 
 void GameMatrix::paintEvent(QPaintEvent* event){
     QRect widgetRect = rect();
-    
+
     QPainter painter(this);
     painter.fillRect(widgetRect, m_backGroundColor);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -216,10 +216,10 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     font.setWeight(QFont::DemiBold);
     font.setPixelSize(m_fontSize);
     painter.setFont(font);
-    
+
     /// Background
     painter.fillRect(rect(), m_backGroundColor);
-    
+
     /// Grid
     QPen gridPen;
     gridPen.setColor(m_gridColor);
@@ -228,11 +228,11 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     for(quint8 col = 0;
          col <= m_rowMaxTasksCount * 2 + m_columns;
          col++){
-        
+
         qreal coordX = ((qreal) col) * m_cellDimension + m_horGridMargins;
         qreal startY = m_verGridMargins;
         qreal endY = widgetRect.height() - m_verGridMargins;
-        
+
         if(col == 0 || col == m_rowMaxTasksCount * 2 + m_columns){
             startY += (m_cellDimension * m_colMaxTasksCount);
         }else if((col > 0 && col < m_rowMaxTasksCount) ||
@@ -246,26 +246,26 @@ void GameMatrix::paintEvent(QPaintEvent* event){
             gridPen.setWidthF(1);
         }
         painter.setPen(gridPen);
-        
+
         QPointF startPoint;
         startPoint.setX(coordX);
         startPoint.setY(startY);
-        
+
         QPointF endPoint;
         endPoint.setX(coordX);
         endPoint.setY(endY);
-        
+
         QLineF line(startPoint, endPoint);
         painter.drawLine(line);
     }
     for(quint8 row = 0;
          row <= m_colMaxTasksCount + m_rows;
          row++){
-        
+
         qreal startX = m_horGridMargins;
         qreal endX = widgetRect.width() - m_horGridMargins;
         qreal coordY = ((qreal) row) * m_cellDimension + m_verGridMargins;
-        
+
         if(row == 0){
             startX += (m_cellDimension * m_rowMaxTasksCount);
             endX -= (m_cellDimension * m_rowMaxTasksCount);
@@ -278,15 +278,15 @@ void GameMatrix::paintEvent(QPaintEvent* event){
             gridPen.setWidthF(0.4);
         }
         painter.setPen(gridPen);
-        
+
         QPointF startPoint;
         startPoint.setX(startX);
         startPoint.setY(coordY);
-        
+
         QPointF endPoint;
         endPoint.setX(endX);
         endPoint.setY(coordY);
-        
+
         QLineF line(startPoint, endPoint);
         painter.drawLine(line);
     }
@@ -468,14 +468,14 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
             for(quint8 h = startY; h <= endY; h++){
                 for(quint8 w = startX; w <= endX; w++){
-                    if(m_selectionBuffer.actionMode != CROSSING){
-                        QRectF cell;
-                        cell.setX(m_horGridMargins + (w * m_cellDimension) + cellMargins);
-                        cell.setY(m_verGridMargins + (h * m_cellDimension) + cellMargins);
-                        cell.setWidth(m_cellDimension - (cellMargins * 2));
-                        cell.setHeight(m_cellDimension - (cellMargins * 2));
-                        selectedRects.push_back(cell);
-                    }else{
+
+                    QRectF cell;
+                    cell.setX(m_horGridMargins + (w * m_cellDimension) + cellMargins);
+                    cell.setY(m_verGridMargins + (h * m_cellDimension) + cellMargins);
+                    cell.setWidth(m_cellDimension - (cellMargins * 2));
+                    cell.setHeight(m_cellDimension - (cellMargins * 2));
+                    selectedRects.push_back(cell);
+                    if(m_selectionBuffer.actionMode == CROSSING){
                         qreal crossMarginValue = m_cellDimension * 0.33;
                         QLineF antiSlash(QPointF(m_horGridMargins + (w * m_cellDimension) + crossMarginValue, m_verGridMargins + (h * m_cellDimension) + crossMarginValue),
                                          QPointF(m_horGridMargins + ((w + 1) * m_cellDimension) - crossMarginValue, m_verGridMargins + ((h + 1) * m_cellDimension) - crossMarginValue));
@@ -498,6 +498,9 @@ void GameMatrix::paintEvent(QPaintEvent* event){
                 break;
             case CROSSING:
             {
+                painter.setBrush(m_backGroundColor);
+                painter.drawRects(selectedRects.data(), selectedRects.size());
+
                 QPen crossPen(m_crossColor);
                 crossPen.setWidth(m_cellDimension / 8);
                 painter.setPen(crossPen);
@@ -534,15 +537,15 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         default:
             break;
         }
-        
+
         QPointF mousePos = m_mousePos.pos - currentRect.topLeft();
         int cellX = (int)(mousePos.rx() / m_cellDimension);
         int cellY = (int)(mousePos.ry() / m_cellDimension);
-        
+
         qreal highlightX = currentRect.x() + (Q_REAL(cellX)) * m_cellDimension;
         qreal highlightY = currentRect.y() + (Q_REAL(cellY)) * m_cellDimension;
         QRect hightlightedCell(highlightX, highlightY, m_cellDimension + 2, m_cellDimension + 2);
-        
+
         painter.setPen(highlightPen);
         painter.setBrush(QColor(0, 0, 0, 0));
         painter.drawRect(hightlightedCell);

@@ -143,8 +143,8 @@ void GameMatrix::resizeGrid(){
     m_matrix.clear();
     m_matrix = std::vector<std::vector<CellState>>(m_rows, std::vector<CellState>(m_columns, CellState::NEUTRAL));
 
-    repaint();
     emit resizeEvent(nullptr);
+    repaint();
 }
 
 bool GameMatrix::pointInGameAreas(const QPointF& pos) const{
@@ -460,6 +460,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     if(m_selectionBuffer.valid){
         if(m_selectionBuffer.area == MATRIX){
             std::vector<QRectF> selectedRects(0);
+            std::vector<QLineF> crossedLines(0);
             int startX = std::min(m_selectionBuffer.startCell.x(), m_selectionBuffer.endCell.x());
             int startY = std::min(m_selectionBuffer.startCell.y(), m_selectionBuffer.endCell.y());
             int endX = std::max(m_selectionBuffer.startCell.x(), m_selectionBuffer.endCell.x());
@@ -467,26 +468,43 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
             for(quint8 h = startY; h <= endY; h++){
                 for(quint8 w = startX; w <= endX; w++){
-                    QRectF cell;
-                    cell.setX(m_horGridMargins + (w * m_cellDimension) + cellMargins);
-                    cell.setY(m_verGridMargins + (h * m_cellDimension) + cellMargins);
-                    cell.setWidth(m_cellDimension - (cellMargins * 2));
-                    cell.setHeight(m_cellDimension - (cellMargins * 2));
-                    selectedRects.push_back(cell);
+                    if(m_selectionBuffer.actionMode != CROSSING){
+                        QRectF cell;
+                        cell.setX(m_horGridMargins + (w * m_cellDimension) + cellMargins);
+                        cell.setY(m_verGridMargins + (h * m_cellDimension) + cellMargins);
+                        cell.setWidth(m_cellDimension - (cellMargins * 2));
+                        cell.setHeight(m_cellDimension - (cellMargins * 2));
+                        selectedRects.push_back(cell);
+                    }else{
+                        qreal crossMarginValue = m_cellDimension * 0.33;
+                        QLineF antiSlash(QPointF(m_horGridMargins + (w * m_cellDimension) + crossMarginValue, m_verGridMargins + (h * m_cellDimension) + crossMarginValue),
+                                         QPointF(m_horGridMargins + ((w + 1) * m_cellDimension) - crossMarginValue, m_verGridMargins + ((h + 1) * m_cellDimension) - crossMarginValue));
+                        QLineF slash(QPointF(m_horGridMargins + (w * m_cellDimension) + crossMarginValue, m_verGridMargins + ((h + 1) * m_cellDimension) - crossMarginValue),
+                                     QPointF(m_horGridMargins + ((w + 1) * m_cellDimension) - crossMarginValue, m_verGridMargins + (h * m_cellDimension) + crossMarginValue));
+
+                        crossedLines.push_back(antiSlash);
+                        crossedLines.push_back(slash);
+                    }
                 }
             }
             switch(m_selectionBuffer.actionMode){
             case VOIDING:
                 painter.setBrush(m_backGroundColor);
+                painter.drawRects(selectedRects.data(), selectedRects.size());
                 break;
             case CHECKING:
                 painter.setBrush(m_checkColor);
+                painter.drawRects(selectedRects.data(), selectedRects.size());
                 break;
             case CROSSING:
+            {
+                QPen crossPen(m_crossColor);
+                crossPen.setWidth(m_cellDimension / 8);
+                painter.setPen(crossPen);
                 painter.setBrush(m_crossColor);
-                break;
+                painter.drawLines(crossedLines.data(), crossedLines.size());
+            }break;
             }
-            painter.drawRects(selectedRects.data(), selectedRects.size());
         }
     }
 

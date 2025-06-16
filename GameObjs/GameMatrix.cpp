@@ -75,6 +75,18 @@ int GameMatrix::heightForWidth(int w) const{
     return (qreal)w / ((qreal)m_columns / (qreal)m_rows);
 }
 
+void GameMatrix::matrixToBool(std::vector<std::vector<bool>>& matrix){
+    matrix.clear();
+    for(quint8 x = 0; x < m_matrix.size(); x++){
+        std::vector<bool> row(0);
+        for(quint8 y = 0; y < m_matrix[x].size(); y++){
+            bool val = (m_matrix[x][y] == CellState::CHECKED);
+            row.push_back(val);
+        }
+        matrix.push_back(row);
+    }
+}
+
 void GameMatrix::restart(){
     std::for_each(std::execution::par_unseq, m_matrix.begin(), m_matrix.end(), [&](std::vector<CellState>& row){
         std::for_each(std::execution::par_unseq, row.begin(), row.end(), [&](CellState& cell){

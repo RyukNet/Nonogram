@@ -4,6 +4,16 @@
 
 #include "MatrixGenerator.h"
 
+
+void printGrid(const std::vector<std::vector<bool>>& grid){
+    for(int i = 0; i < grid.size(); i++){
+        for(int j = 0; j < grid[i].size(); j++){
+            std::cout << ((grid[i][j]) ? "X" : " ") << "|";
+        }
+        std::cout << std::endl;
+    }
+}
+
 GameEngine::GameEngine(quint8 width, quint8 height, QObject *parent)
     : QObject{parent}
     ,m_columns(width)
@@ -23,6 +33,26 @@ void GameEngine::setSize(quint8 columns, quint8 rows){
     emit resized();
 }
 
+quint32 GameEngine::validateGrid(std::vector<std::vector<bool>> matrix) const{
+    assert(matrix.size() == m_matrix.size());
+    assert(matrix[0].size() == m_matrix[0].size());
+
+    printGrid(m_matrix);
+    std::cout << "_________________________________________" << std::endl;
+    printGrid(matrix);
+    std::cout << "_________________________________________" << std::endl;
+
+    quint32 errors = 0;
+    for(quint8 x = 0; x < m_matrix.size(); x++){
+        for(quint8 y = 0; y < m_matrix[x].size(); y++){
+            if(m_matrix[x][y] != matrix[x][y]){
+                errors++;
+            }
+        }
+    }
+    return errors;
+}
+
 quint8 GameEngine::columns() const{
     return m_columns;
 }
@@ -36,7 +66,7 @@ std::vector<std::vector<quint8>> GameEngine::rowsTasks() const{
         quint8 value = 0;
         std::vector<quint8> values;
         for(quint8 w = 0; w < m_columns; w++){
-            if(m_matrix[w][h]){
+            if(m_matrix[h][w]){
                 value++;
             }else{
                 if(value > 0){
@@ -63,7 +93,7 @@ std::vector<std::vector<quint8>> GameEngine::columnsTasks() const{
         quint8 value = 0;
         std::vector<quint8> values;
         for(quint8 h = 0; h < m_rows; h++){
-            if(m_matrix[w][h]){
+            if(m_matrix[h][w]){
                 value++;
             }else{
                 if(value > 0){

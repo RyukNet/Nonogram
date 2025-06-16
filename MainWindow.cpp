@@ -11,6 +11,8 @@
 
 #include "Theme.h"
 
+#include <QDebug>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -113,6 +115,13 @@ void MainWindow::setConnections(){
 
     connect(m_themeToggle, &ToggleSwitch::checked, this, [&](bool check){
         Theme::setDarkMode(check);
+    });
+
+    connect(m_doneButton, &QPushButton::clicked, this, [&](){
+        std::vector<std::vector<bool>> matrix;
+        m_gameMatrix->matrixToBool(matrix);
+        quint32 errors = m_gameEngine->validateGrid(matrix);
+        qDebug() << "Erros : " << errors;
     });
 }
 

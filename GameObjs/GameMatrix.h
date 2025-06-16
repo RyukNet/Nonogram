@@ -27,6 +27,7 @@ public:
     };
     explicit GameMatrix(GameEngine* engine, QWidget *parent = nullptr);
     int heightForWidth(int) const override;
+    void matrixToBool(std::vector<std::vector<bool>>& matrix);
 
 public slots:
     void restart();

@@ -14,9 +14,9 @@ void MatrixGenerator::GenerateNext(quint8 width, quint8 height, std::vector<std:
         vec.resize(height);
     });*/
 
-    for(quint8 w = 0; w < width; w++){
+    for(quint8 h = 0; h < height; h++){
         std::vector<bool> row(0);
-        for(quint8 h = 0; h < height; h++){
+        for(quint8 w = 0; w < width; w++){
             row.push_back(distr(rng) >= 45);
         }
         matrix.push_back(row);

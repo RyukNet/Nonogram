@@ -676,6 +676,9 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
                 }
             }
         }
+        std::vector<std::vector<bool>> matrix;
+        this->matrixToBool(matrix);
+        m_engine->validateGrid(matrix);
     }else if(m_selectionBuffer.area == TOP_TASKS){
         startX -= m_rowMaxTasksCount;
         if(m_selectionBuffer.valid){

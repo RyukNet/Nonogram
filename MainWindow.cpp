@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     QHBoxLayout* headerLay = new QHBoxLayout();
     gameVLay->addLayout(headerLay);
 
-    m_timerLabel = new QLabel("__:__");
+    m_timerLabel = new QLabel("00:00:00");
     headerLay->addWidget(m_timerLabel, 0, Qt::AlignCenter);
 
     m_themeToggle = new ToggleSwitch();
@@ -108,14 +108,17 @@ void MainWindow::setConnections(){
     });
 
     connect(m_startOverButton, &QPushButton::clicked, this, [&](){
+        m_doneButton->setEnabled(true);
         m_gameMatrix->restart();
     });
 
     connect(m_newPuzzleButton, &QPushButton::clicked, this, [&](){
         quint8 width = (quint8)m_widthInput->value();
         quint8 height = (quint8)m_heightInput->value();
-        m_timerLabel->setText("__:__");
         m_gameEngine->setSize(width, height);
+
+        m_doneButton->setEnabled(true);
+        m_timerLabel->setText("00:00:00");
         m_gameTime.setHMS(0, 0, 0, 0);
         m_timer->start();
     });

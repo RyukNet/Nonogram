@@ -37,10 +37,10 @@ quint32 GameEngine::validateGrid(std::vector<std::vector<bool>> matrix){
     assert(matrix.size() == m_matrix.size());
     assert(matrix[0].size() == m_matrix[0].size());
 
-    printGrid(m_matrix);
-    std::cout << "_________________________________________" << std::endl;
-    printGrid(matrix);
-    std::cout << "_________________________________________" << std::endl;
+    //printGrid(m_matrix);
+    //std::cout << "_________________________________________" << std::endl;
+    //printGrid(matrix);
+    //std::cout << "_________________________________________" << std::endl;
 
     quint32 errors = 0;
     for(quint8 x = 0; x < m_matrix.size(); x++){

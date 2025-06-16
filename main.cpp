@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     QFont font = a.font();
+    font.setPixelSize(16);
     font.setFamily("Segoe UI");
     a.setFont(font);
 

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <QtGlobal>
+#include <vector>
 
 namespace MatrixGenerator
 {
-bool GenerateNext();
+void GenerateNext(quint8 columns,quint8 rows, std::vector<std::vector<bool>>& matrix);
 }

@@ -29,7 +29,8 @@ public:
     int heightForWidth(int) const override;
 
 public slots:
-
+    void restart();
+    void resizeGrid();
 signals:
 
 protected:
@@ -50,6 +51,7 @@ protected:
     bool pointInGameAreas(const QPointF& pos) const;
     QPoint getCellCoord(const QPointF& pos) const;
 
+    GameEngine* m_engine = nullptr;
     quint8 m_columns;
     quint8 m_rows;
 

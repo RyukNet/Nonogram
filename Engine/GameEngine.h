@@ -19,6 +19,7 @@ public:
 public slots:
     void setSize(quint8 columns, quint8 rows);
 signals:
+    void resized();
     void columnsChanged(quint8 c);
     void rowsChanged(quint8 r);
 

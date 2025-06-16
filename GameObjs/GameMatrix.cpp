@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <execution>
 
 #include <QPainter>
 #include <QLine>
@@ -19,6 +20,7 @@
 
 GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     : QWidget{parent}
+    ,m_engine(engine)
     ,m_columns(engine->columns())
     ,m_rows(engine->rows())
     ,m_matrix(engine->rows(), std::vector<CellState>(engine->columns(), CellState::NEUTRAL))
@@ -30,7 +32,7 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     ,m_highlightColor(98, 171, 245)
 {
     setMouseTracking(true);
-    auto rowsNumbers = engine->rowsTasks();
+    auto rowsNumbers = m_engine->rowsTasks();
     std::for_each(rowsNumbers.begin(), rowsNumbers.end(), [&](const std::vector<quint8> row){
         std::vector<Task> taskRow(0);
         std::for_each(row.begin(), row.end(), [&](const quint8& val){
@@ -49,7 +51,7 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
         }
     });
 
-    auto colsNumbers = engine->columnsTasks();
+    auto colsNumbers = m_engine->columnsTasks();
     std::for_each(colsNumbers.begin(), colsNumbers.end(), [&](const std::vector<quint8> col){
         std::vector<Task> taskCol(0);
         std::for_each(col.begin(), col.end(), [&](const quint8& val){
@@ -71,6 +73,78 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
 
 int GameMatrix::heightForWidth(int w) const{
     return (qreal)w / ((qreal)m_columns / (qreal)m_rows);
+}
+
+void GameMatrix::restart(){
+    std::for_each(std::execution::par_unseq, m_matrix.begin(), m_matrix.end(), [&](std::vector<CellState>& row){
+        std::for_each(std::execution::par_unseq, row.begin(), row.end(), [&](CellState& cell){
+            cell = NEUTRAL;
+        });
+    });
+
+    std::for_each(std::execution::par_unseq, m_rowsTasks.begin(), m_rowsTasks.end(), [&](std::vector<Task>& vec){
+        std::for_each(std::execution::par_unseq, vec.begin(), vec.end(), [&](Task& task){
+            task.crossed = false;
+        });
+    });
+
+    std::for_each(std::execution::par_unseq, m_colsTasks.begin(), m_colsTasks.end(), [&](std::vector<Task>& vec){
+        std::for_each(std::execution::par_unseq, vec.begin(), vec.end(), [&](Task& task){
+            task.crossed = false;
+        });
+    });
+
+    update();
+}
+
+void GameMatrix::resizeGrid(){
+    m_columns = m_engine->columns();
+    m_rows = m_engine->rows();
+    auto rowsNumbers = m_engine->rowsTasks();
+    m_rowsTasks.clear();
+    std::for_each(rowsNumbers.begin(), rowsNumbers.end(), [&](const std::vector<quint8> row){
+        std::vector<Task> taskRow(0);
+        std::for_each(row.begin(), row.end(), [&](const quint8& val){
+            Task task;
+            task.task = val;
+            task.crossed = false;
+            taskRow.push_back(task);
+        });
+        m_rowsTasks.push_back(taskRow);
+
+    });
+
+    m_rowMaxTasksCount = 0;
+    std::for_each(m_rowsTasks.begin(), m_rowsTasks.end(), [&](const std::vector<Task> row){
+        if(row.size() > m_rowMaxTasksCount){
+            m_rowMaxTasksCount = (quint8) row.size();
+        }
+    });
+
+    auto colsNumbers = m_engine->columnsTasks();
+    m_colsTasks.clear();
+    std::for_each(colsNumbers.begin(), colsNumbers.end(), [&](const std::vector<quint8> col){
+        std::vector<Task> taskCol(0);
+        std::for_each(col.begin(), col.end(), [&](const quint8& val){
+            Task task;
+            task.task = val;
+            task.crossed = false;
+            taskCol.push_back(task);
+        });
+        m_colsTasks.push_back(taskCol);
+    });
+
+    m_colMaxTasksCount = 0;
+    std::for_each(m_colsTasks.begin(), m_colsTasks.end(), [&](const std::vector<Task> col){
+        if(col.size() > m_colMaxTasksCount){
+            m_colMaxTasksCount = (quint8) col.size();
+        }
+    });
+    m_matrix.clear();
+    m_matrix = std::vector<std::vector<CellState>>(m_rows, std::vector<CellState>(m_columns, CellState::NEUTRAL));
+
+    repaint();
+    emit resizeEvent(nullptr);
 }
 
 bool GameMatrix::pointInGameAreas(const QPointF& pos) const{
@@ -133,6 +207,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     QRect widgetRect = rect();
     
     QPainter painter(this);
+    painter.fillRect(widgetRect, m_backGroundColor);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setRenderHint(QPainter::TextAntialiasing);
 
@@ -383,8 +458,8 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
     /// Paint selection if any
     if(m_selectionBuffer.valid){
-        std::vector<QRectF> selectedRects(0);
         if(m_selectionBuffer.area == MATRIX){
+            std::vector<QRectF> selectedRects(0);
             int startX = std::min(m_selectionBuffer.startCell.x(), m_selectionBuffer.endCell.x());
             int startY = std::min(m_selectionBuffer.startCell.y(), m_selectionBuffer.endCell.y());
             int endX = std::max(m_selectionBuffer.startCell.x(), m_selectionBuffer.endCell.x());
@@ -412,10 +487,6 @@ void GameMatrix::paintEvent(QPaintEvent* event){
                 break;
             }
             painter.drawRects(selectedRects.data(), selectedRects.size());
-            //m_selectionBuffer.startCell = QPoint();
-            //m_selectionBuffer.endCell = QPoint();
-            //m_selectionBuffer.area = NONE;
-            //m_selectionBuffer.valid = false;
         }
     }
 

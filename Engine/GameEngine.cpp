@@ -33,7 +33,7 @@ void GameEngine::setSize(quint8 columns, quint8 rows){
     emit resized();
 }
 
-quint32 GameEngine::validateGrid(std::vector<std::vector<bool>> matrix) const{
+quint32 GameEngine::validateGrid(std::vector<std::vector<bool>> matrix){
     assert(matrix.size() == m_matrix.size());
     assert(matrix[0].size() == m_matrix[0].size());
 
@@ -49,6 +49,9 @@ quint32 GameEngine::validateGrid(std::vector<std::vector<bool>> matrix) const{
                 errors++;
             }
         }
+    }
+    if(errors == 0){
+        emit valid();
     }
     return errors;
 }

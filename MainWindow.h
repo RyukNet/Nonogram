@@ -32,6 +32,7 @@ protected:
 
     QWidget* m_headerWidget = nullptr;
     QPushButton* m_doneButton = nullptr;
+    QLabel* m_progressMsg = nullptr;
     QPushButton* m_startOverButton = nullptr;
     QPushButton* m_newPuzzleButton = nullptr;
     QSpinBox* m_widthInput = nullptr;

@@ -17,13 +17,14 @@ public:
     std::vector<std::vector<quint8>> columnsTasks() const;
     std::vector<std::vector<quint8>> rowsTasks() const;
 
-    quint32 validateGrid(std::vector<std::vector<bool>> matrix) const;
+    quint32 validateGrid(std::vector<std::vector<bool>> matrix);
 public slots:
     void setSize(quint8 columns, quint8 rows);
 signals:
     void resized();
     void columnsChanged(quint8 c);
     void rowsChanged(quint8 r);
+    void valid();
 
 
 protected:

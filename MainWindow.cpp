@@ -59,6 +59,9 @@ MainWindow::MainWindow(QWidget *parent)
         m_doneButton = new QPushButton("Done");
         widgetsLay->addWidget(m_doneButton, 0);
 
+        m_progressMsg = new QLabel("");
+        widgetsLay->addWidget(m_progressMsg, 0, Qt::AlignHCenter);
+
         QHBoxLayout* buttonsHLay = new QHBoxLayout();
         widgetsLay->addLayout(buttonsHLay, 0);
 
@@ -104,11 +107,17 @@ void MainWindow::setConnections(){
         m_timerLabel->setText(timeText);
     });
 
-    connect(m_startOverButton, &QPushButton::clicked, m_gameMatrix, &GameMatrix::restart);
+    connect(m_startOverButton, &QPushButton::clicked, this, [&](){
+        m_gameMatrix->restart();
+    });
+
     connect(m_newPuzzleButton, &QPushButton::clicked, this, [&](){
         quint8 width = (quint8)m_widthInput->value();
         quint8 height = (quint8)m_heightInput->value();
+        m_timerLabel->setText("__:__");
         m_gameEngine->setSize(width, height);
+        m_gameTime.setHMS(0, 0, 0, 0);
+        m_timer->start();
     });
 
     connect(m_gameEngine, &GameEngine::resized, m_gameMatrix, &GameMatrix::resizeGrid);
@@ -122,6 +131,12 @@ void MainWindow::setConnections(){
         m_gameMatrix->matrixToBool(matrix);
         quint32 errors = m_gameEngine->validateGrid(matrix);
         qDebug() << "Erros : " << errors;
+        m_progressMsg->setText(QString("%1").arg(errors));
+    });
+
+    connect(m_gameEngine, &GameEngine::valid, this, [&](){
+        m_doneButton->setEnabled(false);
+        m_timer->stop();
     });
 }
 

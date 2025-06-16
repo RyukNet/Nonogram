@@ -332,7 +332,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidthF(2.4);
+                    crossPen.setWidth(m_cellDimension / 18);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);
@@ -372,7 +372,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidthF(2.4);
+                    crossPen.setWidth(m_cellDimension / 18);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);
@@ -396,7 +396,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidthF(2.4);
+                    crossPen.setWidth(m_cellDimension / 18);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);

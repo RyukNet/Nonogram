@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QTime>
 
+#include "ToggleSwitch.h"
 #include "GameEngine.h"
 #include "GameMatrix.h"
 
@@ -21,6 +22,8 @@ public:
 protected:
     void setConnections();
     GameEngine* m_gameEngine = nullptr;
+
+    ToggleSwitch* m_themeToggle = nullptr;
     QLabel* m_timerLabel = nullptr;
     QTimer* m_timer = nullptr;
     QTime m_gameTime;

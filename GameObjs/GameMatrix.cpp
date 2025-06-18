@@ -13,6 +13,7 @@
 #include <QSizePolicy>
 
 #include "MatrixGenerator.h"
+#include "ColorRepository.h"
 
 #include <QDebug>
 
@@ -326,6 +327,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
                 qreal textWidth = fontMetric.horizontalAdvance(numText);
                 qreal textColX = colX + (m_cellDimension - textWidth) / 2;
 
+                painter.setPen(ColorRepository::textColor());
                 painter.drawText(QPointF(textColX, textColY), numText);
 
                 // TODO check if crossed and paint cross if true
@@ -361,11 +363,12 @@ void GameMatrix::paintEvent(QPaintEvent* event){
             qreal col1X = m_horGridMargins + Q_REAL(diff) * m_cellDimension;
             qreal col2X = m_horGridMargins + (m_columns + m_rowMaxTasksCount) * m_cellDimension;
             for(quint8 cell = 0; cell < m_rowsTasks[row].size(); cell++){
-                qreal textColY = colY - painter.font().pixelSize() / 2;
-
                 QString numText1 = QString::number(m_rowsTasks[row][cell].task);
+                qreal textColY = colY - painter.font().pixelSize() / 2;
                 qreal textWidth1 = fontMetric.horizontalAdvance(numText1);
                 qreal textCol1X = col1X + (m_cellDimension - textWidth1) / 2;
+
+                painter.setPen(ColorRepository::textColor());
                 painter.drawText(QPointF(textCol1X, textColY), numText1);
 
                 // TODO check if crossed and paint cross if true

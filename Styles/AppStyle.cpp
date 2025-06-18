@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QLineF>
 #include <QPointF>
+#include <QSpinBox>
 
 #include "ColorRepository.h"
 
@@ -79,10 +80,10 @@ void AppStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *optio
         QVector<QLineF> lines({slash, antiSlash});
 
 
-        if(spinBoxOption->state & QStyle::State_Enabled){
-            painter->setPen(QPen(ColorRepository::textColor(), 1.2));
-        }else{
+        if(!(spinBoxOption->state & QStyle::State_Enabled) || !(spinBoxOption->stepEnabled & QSpinBox::StepUpEnabled)){
             painter->setPen(QPen(ColorRepository::disabledTextColor(), 1.2));
+        }else{
+            painter->setPen(QPen(ColorRepository::textColor(), 1.2));
         }
         //painter->setBrush(ColorRepository::textColor());
         painter->drawLines(lines);
@@ -107,10 +108,10 @@ void AppStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *optio
         QVector<QLineF> lines({slash, antiSlash});
 
 
-        if(spinBoxOption->state & QStyle::State_Enabled){
-            painter->setPen(QPen(ColorRepository::textColor(), 1.2));
-        }else{
+        if(!(spinBoxOption->state & QStyle::State_Enabled) || !(spinBoxOption->stepEnabled & QSpinBox::StepDownEnabled)){
             painter->setPen(QPen(ColorRepository::disabledTextColor(), 1.2));
+        }else{
+            painter->setPen(QPen(ColorRepository::textColor(), 1.2));
         }
         //painter->setBrush(ColorRepository::textColor());
         painter->drawLines(lines);

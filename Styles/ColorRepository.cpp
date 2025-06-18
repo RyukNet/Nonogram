@@ -77,6 +77,14 @@ QColor ColorRepository::buttonOutlineColor(){
     }
 }
 
+QColor ColorRepository::buttonOutlineColor2(){
+    if(is_dark){
+        return QColor(0xCC, 0xCC, 0xCC);
+    }else{
+        return QColor(0x5A, 0x5A, 0x5A);
+    }
+}
+
 QColor ColorRepository::pressedOutlineColor(){
     return buttonOutlineColor();
 }

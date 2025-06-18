@@ -20,9 +20,12 @@ QColor pressedOutlineColor();
 QColor hoverOutlineBrush();
 QColor disabledOutlineBrush();
 
+QColor buttonOutlineColor2();
+
 QColor buttonBackground();
 QColor buttonPressedBackground();
 QColor buttonHoveredBackground();
 QColor buttonDisabledBackground();
+
 
 }

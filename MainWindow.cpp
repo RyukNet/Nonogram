@@ -76,7 +76,6 @@ MainWindow::MainWindow(QWidget *parent)
         m_widthInput->setValue(5);
         m_widthInput->setSingleStep(5);
         buttonsHLay->addWidget(m_widthInput);
-        m_widthInput->setEnabled(false);
 
         m_heightInput = new QSpinBox();
         m_heightInput->setMinimum(5);

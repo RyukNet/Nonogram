@@ -17,12 +17,6 @@ AppStyle::AppStyle()
 
 }
 
-/*int AppStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget, QStyleHintReturn *returnData) const{
-    if(hint == SH_UnderlineShortcut){
-
-    }
-}*/
-
 void AppStyle::drawControl(ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const{
     switch(element){
     case CE_PushButton:
@@ -125,60 +119,4 @@ void AppStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *optio
     }else{
         QProxyStyle::drawPrimitive(element, option, painter, widget);
     }
-    /*if(element == PE_IndicatorSpinUp || element == PE_IndicatorSpinDown){
-        painter->save();
-        painter->setRenderHints(QPainter::Antialiasing);
-        //painter->setPen(ColorRepository::baseBackground());
-        //painter->setBrush(ColorRepository::baseBackground());
-        //proxy()->subControlRect(CC_SpinBox, option, SC_SpinBoxUp, widget);
-        //painter->setPen(Qt::red);
-        //painter->setBrush(Qt::red);
-        //painter->drawRect(option->rect);
-        qDebug() << "drawPrimitive : " << option->rect.width();
-        int rectWidth = option->rect.width();
-        int rectHeight = option->rect.height();
-        int minDimension = qMin(rectWidth, rectHeight);
-        minDimension = minDimension;
-
-        int rectXMid = option->rect.x() + (option->rect.width() / 2);
-        int rectYMid = option->rect.y() + (option->rect.height() / 2);
-
-        QLineF slash;
-        QLineF antiSlash;
-        if(element == PE_IndicatorSpinUp){
-            QPointF topPoint(rectXMid, rectYMid - 1);
-            QPoint leftPoint(rectXMid - minDimension + 2, rectYMid + minDimension - 2);
-            QPoint rightPoint(rectXMid + minDimension - 2, rectYMid + minDimension - 2);
-
-            slash.setP1(topPoint);
-            slash.setP2(leftPoint);
-            antiSlash.setP1(topPoint);
-            antiSlash.setP2(rightPoint);
-        }else{
-            QPointF bottomPoint(rectXMid, rectYMid + 1);
-            QPoint leftPoint(rectXMid - minDimension + 2, rectYMid - minDimension + 2);
-            QPoint rightPoint(rectXMid + minDimension - 2, rectYMid - minDimension + 2);
-
-            slash.setP1(bottomPoint);
-            slash.setP2(leftPoint);
-            antiSlash.setP1(bottomPoint);
-            antiSlash.setP2(rightPoint);
-        }
-
-        if(option->state & State_Enabled){
-            QPen pen(ColorRepository::textColor(), 1.2);
-            painter->setPen(pen);
-        }else if(option->state & State_Sunken){
-            QPen pen(ColorRepository::pressedTextColor(), 1.2);
-            painter->setPen(pen);
-        }else{
-            QPen pen(ColorRepository::disabledTextColor(), 1.2);
-            painter->setPen(pen);
-        }
-        QVector<QLineF> lines({antiSlash, slash});
-        painter->drawLines(lines);
-        painter->restore();
-    }else{
-        QProxyStyle::drawPrimitive(element, option, painter, widget);
-    }*/
 }

@@ -54,19 +54,19 @@ void ToggleSwitch::paintEvent(QPaintEvent *)
 
     // Similar colors as for pushbuttons (but the shape is different)
     if (!isEnabled()) {
-        painter.setPen(ColorRepository::buttonOutlineColor());
-        painter.setOpacity(0.5);
-    } else if (m_mouseDown) // Sunken
-        painter.setPen(ColorRepository::pressedOutlineColor());
+        painter.setPen(QPen(ColorRepository::disabledOutlineBrush(), 1.2));
+        //painter.setOpacity(0.5);
+    } /*else if (m_mouseDown) // Sunken
+        //painter.setPen(ColorRepository::pressedOutlineColor());
     else if (underMouse() || hasFocus()){
         //painter.setPen(QPen(ColorRepository::hoverOutlineBrush(rect()), 1));
-        painter.setPen(ColorRepository::hoverOutlineBrush());
-    }
+        painter.setPen(ColorRepository::buttonOutlineColor2());
+    }*/
     else
-        painter.setPen(ColorRepository::buttonOutlineColor());
+        painter.setPen(QPen(ColorRepository::buttonOutlineColor2(), 1.2));
 
     if (m_checked)
-        painter.setBrush(ColorRepository::baseBackground());
+        painter.setBrush(ColorRepository::windowBackground());
     const qreal radius = height() / 2;
     painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5), radius, radius);
 
@@ -78,10 +78,10 @@ void ToggleSwitch::paintEvent(QPaintEvent *)
     if (m_checked) {
         valueRect.moveLeft(width() - valueRect.width() - s_innerMargin);
         //painter.setPen(QPen(Theme::progressBarOutlineBrush(valueRect), 1));
-        painter.setPen(ColorRepository::buttonOutlineColor());
+        painter.setPen(ColorRepository::buttonOutlineColor2());
         painter.setBrush(Qt::NoBrush);
     } else {
-        painter.setBrush(ColorRepository::baseBackground());
+        painter.setBrush(ColorRepository::windowBackground());
     }
     painter.drawEllipse(valueRect);
 }

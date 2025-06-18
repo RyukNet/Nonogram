@@ -238,12 +238,10 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     gridPen.setColor(m_gridColor);
     gridPen.setWidth(1);
     painter.setPen(gridPen);
-    QPointF innerGridtopRight(m_horGridMargins + m_cellDimension * m_rowMaxTasksCount,
-                              m_verGridMargins + m_cellDimension * m_colMaxTasksCount);
-    QPointF innerGridBottomLeft(m_horGridMargins + m_cellDimension * (m_rowMaxTasksCount + m_columns),
-                                m_verGridMargins + m_cellDimension * (m_colMaxTasksCount + m_rows));
-    QRectF innerGrid(innerGridtopRight, innerGridBottomLeft);
-    painter.fillRect(innerGrid, m_backGroundColor);
+    painter.fillRect(m_matrixArea, m_backGroundColor);
+    painter.fillRect(m_colTasksArea, m_backGroundColor);
+    painter.fillRect(m_leftRowTasksArea, m_backGroundColor);
+    painter.fillRect(m_rightRowTasksArea, m_backGroundColor);
     for(quint8 col = 0;
          col <= m_rowMaxTasksCount * 2 + m_columns;
          col++){
@@ -327,7 +325,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
                 qreal textWidth = fontMetric.horizontalAdvance(numText);
                 qreal textColX = colX + (m_cellDimension - textWidth) / 2;
 
-                painter.setPen(ColorRepository::textColor());
+                //painter.setPen(ColorRepository::textColor());
                 painter.drawText(QPointF(textColX, textColY), numText);
 
                 // TODO check if crossed and paint cross if true
@@ -340,7 +338,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidth(m_cellDimension / 18);
+                    crossPen.setWidth(m_cellDimension / 12);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);
@@ -368,7 +366,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
                 qreal textWidth1 = fontMetric.horizontalAdvance(numText1);
                 qreal textCol1X = col1X + (m_cellDimension - textWidth1) / 2;
 
-                painter.setPen(ColorRepository::textColor());
+                //painter.setPen(ColorRepository::textColor());
                 painter.drawText(QPointF(textCol1X, textColY), numText1);
 
                 // TODO check if crossed and paint cross if true
@@ -381,7 +379,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidth(m_cellDimension / 18);
+                    crossPen.setWidth(m_cellDimension / 12);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);
@@ -405,7 +403,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
 
                     QPen currentPen = painter.pen();
                     QPen crossPen(m_crossColor);
-                    crossPen.setWidth(m_cellDimension / 18);
+                    crossPen.setWidth(m_cellDimension / 12);
                     painter.setPen(crossPen);
                     painter.drawLine(firstLineTopLeft, firstLineBottomRight);
                     painter.drawLine(secondLineBottomLeft, secondLineTopRight);

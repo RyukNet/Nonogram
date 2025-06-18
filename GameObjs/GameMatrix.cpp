@@ -70,6 +70,9 @@ GameMatrix::GameMatrix(GameEngine* engine, QWidget *parent)
     });
     std::cout << "max row tasks : " << (int) m_rowMaxTasksCount << std::endl;
     std::cout << "max col tasks : " << (int) m_colMaxTasksCount << std::endl;
+
+    connect(this, &GameMatrix::colTasksCrossed, this, &GameMatrix::checkAndCrossCol);
+    connect(this, &GameMatrix::rowTasksCrossed, this, &GameMatrix::checkAndCrossRow);
 }
 
 int GameMatrix::heightForWidth(int w) const{
@@ -697,9 +700,10 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
                 startY -= diffY;
                 endY -= diffY;
             }
-            for(int h = startY; h <= endY ; h++){
+            /*for(int h = startY; h <= endY ; h++){
                 m_colsTasks[startX][h].crossed = m_selectionBuffer.actionMode == CROSSING;
-            }
+            }*/
+            crossColTasks(startX, startY, endY, m_selectionBuffer.actionMode == CROSSING);
         }
     }else if(m_mousePos.area == LEFT_TASKS){
         startY -= m_colMaxTasksCount;
@@ -712,9 +716,10 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
                 startX -= diffX;
                 endX -= diffX;
             }
-            for(int w = startX; w <= endX; w++){
+            /*for(int w = startX; w <= endX; w++){
                 m_rowsTasks[startY][w].crossed = m_selectionBuffer.actionMode == CROSSING;
-            }
+            }*/
+            crossRowTasks(startY, startX, endX, m_selectionBuffer.actionMode == CROSSING);
         }
     }else if(m_mousePos.area == RIGHT_TASKS){
         startY -= m_colMaxTasksCount;
@@ -724,9 +729,10 @@ void GameMatrix::mouseReleaseEvent(QMouseEvent *e){
             if(endX >= m_rowsTasks[startY].size()){
                 endX = m_rowsTasks[startY].size() - 1;
             }
-            for(int w = startX; w <= endX; w++){
+            /*for(int w = startX; w <= endX; w++){
                 m_rowsTasks[startY][w].crossed = m_selectionBuffer.actionMode == CROSSING;
-            }
+            }*/
+            crossRowTasks(startY, startX, endX, m_selectionBuffer.actionMode == CROSSING);
         }
     }
 
@@ -776,4 +782,125 @@ void GameMatrix::mouseMoveEvent(QMouseEvent* e){
     }
     repaint();
     QWidget::mouseMoveEvent(e);
+}
+
+void GameMatrix::crossColTasks(size_t col, quint8 start, quint8 end, bool cross){
+    for(int h = start; h <= end; h++){
+        m_colsTasks[col][h].crossed = cross;
+    }
+    bool allCrossed = std::all_of(m_colsTasks[col].begin(), m_colsTasks[col].end(), [](const Task& task){
+        return (task.crossed == true);
+    });
+    if(allCrossed){
+        //qDebug() << "Column " << col << " tasks are all crossed";
+        emit colTasksCrossed(col);
+    }
+}
+
+void GameMatrix::crossRowTasks(size_t row, quint8 start, quint8 end, bool cross){
+    for(int w = start; w <= end; w++){
+        m_rowsTasks[row][w].crossed = cross;
+    }
+    bool allCrossed = std::all_of(m_rowsTasks[row].begin(), m_rowsTasks[row].end(), [](const Task& task){
+        return (task.crossed == true);
+    });
+    if(allCrossed){
+        //qDebug() << "Row " << row << " tasks are all crossed";
+        emit rowTasksCrossed(row);
+    }
+}
+
+void GameMatrix::checkAndCrossCol(size_t col){
+    if(!isCheckableColAgainstTasksCross(col)){
+        return;
+    }
+    for(quint8 row = 0; row < m_rows; row++){
+        if(m_matrix[row][col] == NEUTRAL){
+            m_matrix[row][col] = CROSSED;
+        }
+    }
+}
+
+void GameMatrix::checkAndCrossRow(size_t row){
+    if(!isCheckableRowAgainstTasksCross(row)){
+        return;
+    }
+    for(quint8 col = 0; col < m_columns; col++){
+        if(m_matrix[row][col] == NEUTRAL){
+            m_matrix[row][col] = CROSSED;
+        }
+    }
+}
+
+bool GameMatrix::isCheckableColAgainstTasksCross(size_t col){
+    std::vector<Task>& colTask = m_colsTasks.at(col);
+
+    // Construct a vector of checked values from the matrix
+    std::vector<quint8> checkedVector(0);
+    bool previousChecked = false;
+    quint8 counter = 0;
+    for(size_t row = 0; row < m_rows; row++){
+        if(m_matrix[row][col] != CHECKED){
+            if(previousChecked){
+                checkedVector.push_back(counter);
+                previousChecked = false;
+                counter = 0;
+            }
+        }else{
+            previousChecked = true;
+            counter++;
+        }
+    }
+    // last item
+    if(previousChecked){
+        checkedVector.push_back(counter);
+    }
+
+    // Check with task
+    if(colTask.size() != checkedVector.size()){
+        return false;
+    }
+    for(size_t i = 0; i < colTask.size(); i++){
+        if(colTask[i].task != checkedVector[i]){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool GameMatrix::isCheckableRowAgainstTasksCross(size_t row){
+    std::vector<Task>& rowTask = m_rowsTasks.at(row);
+
+    // Construct a vector of checked values from the matrix
+    std::vector<quint8> checkedVector(0);
+    bool previousChecked = false;
+    quint8 counter = 0;
+    for(size_t col = 0; col < m_columns; col++){
+        if(m_matrix[row][col] != CHECKED){
+            if(previousChecked){
+                checkedVector.push_back(counter);
+                previousChecked = false;
+                counter = 0;
+            }
+        }else{
+            previousChecked = true;
+            counter++;
+        }
+    }
+    // last item
+    if(previousChecked){
+        checkedVector.push_back(counter);
+    }
+
+    // Check with task
+    if(rowTask.size() != checkedVector.size()){
+        return false;
+    }
+    for(size_t i = 0; i < rowTask.size(); i++){
+        if(rowTask[i].task != checkedVector[i]){
+            return false;
+        }
+    }
+    return true;
 }

@@ -32,7 +32,14 @@ public:
 public slots:
     void restart();
     void resizeGrid();
-signals:
+
+protected:
+    Q_SIGNAL void colTasksCrossed(size_t col);
+    Q_SIGNAL void rowTasksCrossed(size_t row);
+
+protected slots:
+    void checkAndCrossCol(size_t col);
+    void checkAndCrossRow(size_t row);
 
 protected:
     enum Area{
@@ -51,6 +58,11 @@ protected:
 
     bool pointInGameAreas(const QPointF& pos) const;
     QPoint getCellCoord(const QPointF& pos) const;
+
+    void crossColTasks(size_t col, quint8 start, quint8 end, bool cross);
+    void crossRowTasks(size_t row, quint8 start, quint8 end, bool cross);
+    bool isCheckableColAgainstTasksCross(size_t col);
+    bool isCheckableRowAgainstTasksCross(size_t row);
 
     GameEngine* m_engine = nullptr;
     quint8 m_columns;

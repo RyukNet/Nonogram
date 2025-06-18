@@ -17,8 +17,8 @@ public:
 private:
     void setupPainterForFrameBox(const QStyleOptionSpinBox *option, QPainter *painter, const QWidget *widget);
     void setupPainterForEditFieldBox(const QStyleOptionSpinBox *option, QPainter *painter, const QWidget *widget);
-    void setupPainterForBoxUp(const QStyleOptionSpinBox *option, QPainter *painter, const QRectF subRect, const QWidget *widget);
-    void setupPainterForBoxDown(const QStyleOptionSpinBox *option, QPainter *painter, const QRectF subRect, const QWidget *widget);
+    void setupPainterForBoxUp(const QStyleOptionSpinBox *option, QPainter *painter, QRectF subRect, const QWidget *widget);
+    void setupPainterForBoxDown(const QStyleOptionSpinBox *option, QPainter *painter, QRectF subRect, const QWidget *widget);
 
     void drawFrameBox(const QStyleOptionSpinBox *option, QPainter *painter, const QWidget *widget);
     void drawEditFieldBox(const QStyleOptionSpinBox *option, QPainter *painter, const QWidget *widget);

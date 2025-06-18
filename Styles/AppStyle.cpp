@@ -76,9 +76,9 @@ void AppStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *optio
         qreal midX = buttonRect.x() + (buttonRect.width() / 2);
         qreal midY = buttonRect.y() + (buttonRect.height() / 2);
 
-        QPointF topPoint(midX, midY);// - minDimension / 2);
-        QPointF leftPoint(midX - minDimension / 2, midY + minDimension / 2);
-        QPointF rightPoint(midX + minDimension / 2, midY + minDimension / 2);
+        QPointF topPoint(midX, midY - minDimension / 4);
+        QPointF leftPoint(midX - minDimension / 2, midY + minDimension / 4);
+        QPointF rightPoint(midX + minDimension / 2, midY + minDimension / 4);
         QLineF slash(leftPoint, topPoint);
         QLineF antiSlash(topPoint, rightPoint);
 
@@ -104,9 +104,9 @@ void AppStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *optio
         qreal midX = buttonRect.x() + (buttonRect.width() / 2);
         qreal midY = buttonRect.y() + (buttonRect.height() / 2);
 
-        QPointF bottomPoint(midX, midY);
-        QPointF leftPoint(midX - minDimension / 2, midY - minDimension / 2);
-        QPointF rightPoint(midX + minDimension / 2, midY - minDimension / 2);
+        QPointF bottomPoint(midX, midY + minDimension / 4);
+        QPointF leftPoint(midX - minDimension / 2, midY - minDimension / 4);
+        QPointF rightPoint(midX + minDimension / 2, midY - minDimension / 4);
         QLineF slash(leftPoint, bottomPoint);
         QLineF antiSlash(bottomPoint, rightPoint);
 

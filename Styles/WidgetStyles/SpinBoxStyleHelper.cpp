@@ -40,7 +40,7 @@ void SpinBoxStyleHelper::setupPainterForEditFieldBox(const QStyleOptionSpinBox *
     }
 }
 
-void SpinBoxStyleHelper::setupPainterForBoxUp(const QStyleOptionSpinBox *option, QPainter *painter, const QRectF subRect, const QWidget *widget){
+void SpinBoxStyleHelper::setupPainterForBoxUp(const QStyleOptionSpinBox *option, QPainter *painter, QRectF subRect, const QWidget *widget){
     Q_UNUSED(widget)
     painter->setPen(QColor(0, 0, 0, 0));
     if(!(option->state & QStyle::State_Enabled)){
@@ -50,7 +50,25 @@ void SpinBoxStyleHelper::setupPainterForBoxUp(const QStyleOptionSpinBox *option,
             painter->setBrush(ColorRepository::baseBackground());
             if(option->state & QStyle::State_Sunken){
                 //TODO: Calculate mouse position before set color
-                painter->setBrush(ColorRepository::buttonPressedBackground());
+                /*QPointF absoluteWidgetTopLeft = widget->mapToGlobal(QPoint(0, 0));
+                QRectF absoluteSubControlRect(absoluteWidgetTopLeft.x() + widget->rect().width() - subRect.width(),
+                                              absoluteWidgetTopLeft.y() + widget->rect().height() - subRect.height(),
+                                              subRect.width(),
+                                              subRect.height());
+                subRect.setTopLeft(absoluteWidgetTopLeft);
+                auto cursorPos = QCursor::pos();
+                if(absoluteSubControlRect.contains(QCursor::pos())){
+                    painter->setBrush(ColorRepository::buttonPressedBackground());
+                }else{
+                    painter->setBrush(ColorRepository::baseBackground());
+                }*/
+                QPointF absoluteWidgetTopLeft = widget->mapToGlobal(QPoint(0, 0));
+                subRect.setTopLeft(absoluteWidgetTopLeft);
+                if(subRect.contains(QCursor::pos())){
+                    painter->setBrush(ColorRepository::buttonPressedBackground());
+                }else{
+                    painter->setBrush(ColorRepository::baseBackground());
+                }
             }
         }else{
             painter->setBrush(ColorRepository::buttonDisabledBackground());
@@ -58,7 +76,7 @@ void SpinBoxStyleHelper::setupPainterForBoxUp(const QStyleOptionSpinBox *option,
     }
 }
 
-void SpinBoxStyleHelper::setupPainterForBoxDown(const QStyleOptionSpinBox *option, QPainter *painter, const QRectF subRect, const QWidget *widget){
+void SpinBoxStyleHelper::setupPainterForBoxDown(const QStyleOptionSpinBox *option, QPainter *painter, QRectF subRect, const QWidget *widget){
     Q_UNUSED(widget)
     painter->setPen(QColor(0, 0, 0, 0));
     if(!(option->state & QStyle::State_Enabled)){
@@ -68,7 +86,13 @@ void SpinBoxStyleHelper::setupPainterForBoxDown(const QStyleOptionSpinBox *optio
             painter->setBrush(ColorRepository::baseBackground());
             if(option->state & QStyle::State_Sunken){
                 //TODO: Calculate mouse position before set color
-                painter->setBrush(ColorRepository::buttonPressedBackground());
+                QPointF absoluteWidgetTopLeft = widget->mapToGlobal(QPoint(0, 0));
+                subRect.setTopLeft(absoluteWidgetTopLeft);
+                if(subRect.contains(QCursor::pos())){
+                    painter->setBrush(ColorRepository::buttonPressedBackground());
+                }else{
+                    painter->setBrush(ColorRepository::baseBackground());
+                }
             }
         }else{
             painter->setBrush(ColorRepository::buttonDisabledBackground());

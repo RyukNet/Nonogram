@@ -109,6 +109,7 @@ void MainWindow::setConnections(){
     connect(m_startOverButton, &QPushButton::clicked, this, [&](){
         m_doneButton->setEnabled(true);
         m_gameMatrix->restart();
+        m_progressMsg->setText("");
     });
 
     connect(m_newPuzzleButton, &QPushButton::clicked, this, [&](){
@@ -120,6 +121,7 @@ void MainWindow::setConnections(){
         m_timerLabel->setText("00:00:00");
         m_gameTime.setHMS(0, 0, 0, 0);
         m_timer->start();
+        m_progressMsg->setText("");
     });
 
     connect(m_gameEngine, &GameEngine::resized, m_gameMatrix, &GameMatrix::resizeGrid);

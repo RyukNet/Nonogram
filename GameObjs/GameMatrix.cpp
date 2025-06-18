@@ -261,7 +261,7 @@ void GameMatrix::paintEvent(QPaintEvent* event){
         }
 
         if(col == 0 || std::abs(col - m_rowMaxTasksCount) % 5 == 0 || (col == m_rowMaxTasksCount * 2 + m_columns)){
-            gridPen.setWidthF(2);
+            gridPen.setWidthF(2.2);
         }else{
             gridPen.setWidthF(1);
         }
@@ -293,9 +293,9 @@ void GameMatrix::paintEvent(QPaintEvent* event){
             continue;
         }
         if(row == 0 || std::abs(row - m_colMaxTasksCount) % 5 == 0 || (row == m_colMaxTasksCount + m_rows)){
-            gridPen.setWidthF(2);
+            gridPen.setWidthF(2.2);
         }else{
-            gridPen.setWidthF(0.4);
+            gridPen.setWidthF(1);
         }
         painter.setPen(gridPen);
 

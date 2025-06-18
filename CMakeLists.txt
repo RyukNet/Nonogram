@@ -16,7 +16,8 @@ include_directories(Engine)
 include_directories(Generator)
 include_directories(GameObjs)
 include_directories(Widgets)
-include_directories(Themes)
+include_directories(Styles)
+include_directories(Styles/WidgetStyles)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -35,8 +36,15 @@ set(PROJECT_SOURCES
         Widgets/ToggleSwitch.h
         Widgets/ToggleSwitch.cpp
 
-        Themes/Theme.h
-        Themes/Theme.cpp
+        Styles/AppStyle.h
+        Styles/AppStyle.cpp
+        Styles/ColorRepository.h
+        Styles/ColorRepository.cpp
+
+        Styles/WidgetStyles/PushButtonStyleHelper.h
+        Styles/WidgetStyles/PushButtonStyleHelper.cpp
+        Styles/WidgetStyles/SpinBoxStyleHelper.h
+        Styles/WidgetStyles/SpinBoxStyleHelper.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

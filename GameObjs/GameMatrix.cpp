@@ -218,8 +218,9 @@ void GameMatrix::resizeEvent(QResizeEvent* event){
 void GameMatrix::paintEvent(QPaintEvent* event){
     QRect widgetRect = rect();
 
+    /// Background
     QPainter painter(this);
-    painter.fillRect(widgetRect, m_backGroundColor);
+    painter.fillRect(widgetRect, QColor("transparent"));
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setRenderHint(QPainter::TextAntialiasing);
 
@@ -229,14 +230,19 @@ void GameMatrix::paintEvent(QPaintEvent* event){
     font.setPixelSize(m_fontSize);
     painter.setFont(font);
 
-    /// Background
-    painter.fillRect(rect(), m_backGroundColor);
+    //painter.fillRect(rect(), m_backGroundColor);
 
     /// Grid
     QPen gridPen;
     gridPen.setColor(m_gridColor);
     gridPen.setWidth(1);
     painter.setPen(gridPen);
+    QPointF innerGridtopRight(m_horGridMargins + m_cellDimension * m_rowMaxTasksCount,
+                              m_verGridMargins + m_cellDimension * m_colMaxTasksCount);
+    QPointF innerGridBottomLeft(m_horGridMargins + m_cellDimension * (m_rowMaxTasksCount + m_columns),
+                                m_verGridMargins + m_cellDimension * (m_colMaxTasksCount + m_rows));
+    QRectF innerGrid(innerGridtopRight, innerGridBottomLeft);
+    painter.fillRect(innerGrid, m_backGroundColor);
     for(quint8 col = 0;
          col <= m_rowMaxTasksCount * 2 + m_columns;
          col++){

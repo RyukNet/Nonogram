@@ -9,9 +9,8 @@
 #include <QPushButton>
 #include <QSizePolicy>
 
-#include "Theme.h"
-
 #include <QDebug>
+#include "ColorRepository.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -77,6 +76,7 @@ MainWindow::MainWindow(QWidget *parent)
         m_widthInput->setValue(5);
         m_widthInput->setSingleStep(5);
         buttonsHLay->addWidget(m_widthInput);
+        m_widthInput->setEnabled(false);
 
         m_heightInput = new QSpinBox();
         m_heightInput->setMinimum(5);
@@ -126,7 +126,8 @@ void MainWindow::setConnections(){
     connect(m_gameEngine, &GameEngine::resized, m_gameMatrix, &GameMatrix::resizeGrid);
 
     connect(m_themeToggle, &ToggleSwitch::checked, this, [&](bool check){
-        Theme::setDarkMode(check);
+        //Theme::setDarkMode(check);
+        ColorRepository::setDarkMode(check);
     });
 
     connect(m_doneButton, &QPushButton::clicked, this, [&](){

@@ -1,8 +1,9 @@
 #include "ToggleSwitch.h"
-#include "Theme.h"
 
 #include <QMouseEvent>
 #include <QPainter>
+
+#include "ColorRepository.h"
 
 static const int s_height = 26;
 static const int s_innerMargin = 4;
@@ -53,17 +54,19 @@ void ToggleSwitch::paintEvent(QPaintEvent *)
 
     // Similar colors as for pushbuttons (but the shape is different)
     if (!isEnabled()) {
-        painter.setPen(Theme::buttonOutlineColor());
+        painter.setPen(ColorRepository::buttonOutlineColor());
         painter.setOpacity(0.5);
     } else if (m_mouseDown) // Sunken
-        painter.setPen(Theme::pressedOutlineColor());
-    else if (underMouse() || hasFocus())
-        painter.setPen(QPen(Theme::hoverOutlineBrush(rect()), 1));
+        painter.setPen(ColorRepository::pressedOutlineColor());
+    else if (underMouse() || hasFocus()){
+        //painter.setPen(QPen(ColorRepository::hoverOutlineBrush(rect()), 1));
+        painter.setPen(ColorRepository::hoverOutlineBrush());
+    }
     else
-        painter.setPen(Theme::buttonOutlineColor());
+        painter.setPen(ColorRepository::buttonOutlineColor());
 
     if (m_checked)
-        painter.setBrush(Theme::baseBackground());
+        painter.setBrush(ColorRepository::baseBackground());
     const qreal radius = height() / 2;
     painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5), radius, radius);
 
@@ -74,10 +77,11 @@ void ToggleSwitch::paintEvent(QPaintEvent *)
 
     if (m_checked) {
         valueRect.moveLeft(width() - valueRect.width() - s_innerMargin);
-        painter.setPen(QPen(Theme::progressBarOutlineBrush(valueRect), 1));
+        //painter.setPen(QPen(Theme::progressBarOutlineBrush(valueRect), 1));
+        painter.setPen(ColorRepository::buttonOutlineColor());
         painter.setBrush(Qt::NoBrush);
     } else {
-        painter.setBrush(Theme::baseBackground());
+        painter.setBrush(ColorRepository::baseBackground());
     }
     painter.drawEllipse(valueRect);
 }
